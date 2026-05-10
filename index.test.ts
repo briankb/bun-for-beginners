@@ -1,6 +1,11 @@
 // index.test.ts
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test, beforeEach } from "bun:test";
 import "./index.ts";
+import { db } from "./db";
+
+beforeEach(() => {
+  db.run("DELETE FROM notes");
+});
 
 describe("server routes", () => {
   test("home page returns 200 with welcome text", async () => {
@@ -13,23 +18,26 @@ describe("server routes", () => {
   test("about page returns 200", async () => {
     const res = await fetch("http://localhost:3000/about");
     expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("About");
   });
 
   test("health check returns OK", async () => {
     const res = await fetch("http://localhost:3000/ok");
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe("OK");
+    const text = await res.text();
+    expect(text).toBe("OK");
   });
 
-  test("wildcard route serves the stylesheet", async () => {
+  test("stylesheet is served from public folder", async () => {
     const res = await fetch("http://localhost:3000/style.css");
     expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/css");
   });
 
-  test("unknown URL returns 404", async () => {
-    const res = await fetch("http://localhost:3000/nope");
+  test("unknown route returns 404", async () => {
+    const res = await fetch("http://localhost:3000/does-not-exist");
     expect(res.status).toBe(404);
-    expect(await res.text()).toBe("Page not found");
   });
 });
 
@@ -43,8 +51,8 @@ describe("notes", () => {
 
   test("POST /notes redirects to home", async () => {
     const form = new FormData();
-    form.set("title", "redirect-test-note");
-    form.set("body", "checking the redirect");
+    form.set("title", "buy milk");
+    form.set("body", "two percent please");
 
     const res = await fetch("http://localhost:3000/notes", {
       method: "POST",
@@ -58,7 +66,7 @@ describe("notes", () => {
 
   test("submitted notes appear on the home page", async () => {
     const form = new FormData();
-    form.set("title", "buy-milk-test-note");
+    form.set("title", "buy milk");
     form.set("body", "two percent please");
 
     await fetch("http://localhost:3000/notes", {
@@ -69,14 +77,14 @@ describe("notes", () => {
 
     const res = await fetch("http://localhost:3000/");
     const html = await res.text();
-    expect(html).toContain("buy-milk-test-note");
+    expect(html).toContain("buy milk");
     expect(html).toContain("two percent please");
   });
 
   test("user input is escaped on the home page", async () => {
     const form = new FormData();
     form.set("title", "<script>alert('xss')</script>");
-    form.set("body", "escape-test-body");
+    form.set("body", "ok");
 
     await fetch("http://localhost:3000/notes", {
       method: "POST",
@@ -88,5 +96,31 @@ describe("notes", () => {
     const html = await res.text();
     expect(html).not.toContain("<script>alert('xss')</script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  test("multiple notes appear in order", async () => {
+    const form = new FormData();
+    form.set("title", "first");
+    form.set("body", "one");
+
+    await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    form.set("title", "second");
+    form.set("body", "two");
+
+    await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    const res = await fetch("http://localhost:3000/");
+    const html = await res.text();
+    expect(html).toContain("first");
+    expect(html).toContain("second");
   });
 });

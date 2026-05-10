@@ -1,13 +1,22 @@
 // routes.ts
 import { page, escapeHtml } from "./templates";
+import { db } from "./db";
 
 const formHtml = await Bun.file("./form.html").text();
 
-export type Note = { id: number; title: string; body: string };
-export const notes: Note[] = [];
-let nextId = 1;
+export type Note = {
+  id: number;
+  title: string;
+  body: string;
+  created_at: number;
+  updated_at: number;
+};
+
+const listNotes = db.query("SELECT * FROM notes ORDER BY created_at DESC");
+const insertNote = db.prepare("INSERT INTO notes (title, body) VALUES (?, ?)");
 
 export const home = () => {
+  const notes = listNotes.all() as Note[];
   const list = notes
     .map(
       (n) =>
@@ -30,6 +39,6 @@ export const createNote = async (req: Request) => {
   const form = await req.formData();
   const title = String(form.get("title"));
   const body = String(form.get("body"));
-  notes.push({ id: nextId++, title, body });
+  insertNote.run(title, body);
   return Response.redirect("/", 303);
 };

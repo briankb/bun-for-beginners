@@ -35,3 +35,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Bun 
 bun.lock
+
+# Database
+notes.db
+notes.db-wal
+notes.db-shm
+notes.test.db
+notes.test.db-wal
+notes.test.db-shm

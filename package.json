@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch index.ts"
+    "dev": "bun run --watch index.ts",
+    "test": "DB_PATH=notes.test.db bun test"
   },
   "devDependencies": {
     "@types/bun": "latest"
