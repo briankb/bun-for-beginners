@@ -34,3 +34,17 @@ button {
   font: inherit;
   padding: 0.5rem;
 }
+
+.errors {
+  background: #fde8e8;
+  border: 1px solid #f5a5a5;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  color: #8a1f1f;
+  list-style-position: inside;
+}
+
+.errors li {
+  margin: 0.1rem 0;
+}

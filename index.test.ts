@@ -35,9 +35,12 @@ describe("server routes", () => {
     expect(res.headers.get("content-type")).toContain("text/css");
   });
 
-  test("unknown route returns 404", async () => {
-    const res = await fetch("http://localhost:3000/does-not-exist");
+  test("unknown URL returns 404", async () => {
+    const res = await fetch("http://localhost:3000/nope");
     expect(res.status).toBe(404);
+    const html = await res.text();
+    expect(html).toContain("Not found");
+    expect(html).toContain('<a href="/">Go home</a>');
   });
 });
 
@@ -122,5 +125,78 @@ describe("notes", () => {
     const html = await res.text();
     expect(html).toContain("first");
     expect(html).toContain("second");
+  });
+});
+
+describe("validation and errors", () => {
+  test("empty title returns the form with an error", async () => {
+    const form = new FormData();
+    form.set("title", "");
+    form.set("body", "has a body");
+
+    const res = await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(422);
+    const html = await res.text();
+    expect(html).toContain("Title is required.");
+  });
+
+  test("empty body returns the form with an error", async () => {
+    const form = new FormData();
+    form.set("title", "has a title");
+    form.set("body", "");
+
+    const res = await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(422);
+    const html = await res.text();
+    expect(html).toContain("Body is required.");
+  });
+
+  test("invalid form preserves the user's input", async () => {
+    const form = new FormData();
+    form.set("title", "kept around");
+    form.set("body", "");
+
+    const res = await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    const html = await res.text();
+    expect(html).toContain('value="kept around"');
+  });
+
+  test("invalid form does not write to the database", async () => {
+    const form = new FormData();
+    form.set("title", "");
+    form.set("body", "");
+
+    await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    const res = await fetch("http://localhost:3000/");
+    const html = await res.text();
+    expect(html).toContain("No notes yet.");
+  });
+
+  test("missing route returns the styled 404 page", async () => {
+    const res = await fetch("http://localhost:3000/no-such-page");
+    expect(res.status).toBe(404);
+    const html = await res.text();
+    expect(html).toContain("<nav>");
+    expect(html).toContain("Not found");
   });
 });

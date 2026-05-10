@@ -1,4 +1,6 @@
+// index.ts
 import { home, about, newNote, createNote } from "./routes";
+import { notFound, page } from "./templates";
 
 export const server = Bun.serve({
   port: 3000,
@@ -16,11 +18,20 @@ export const server = Bun.serve({
       if (await file.exists()) {
         return new Response(file);
       }
-      return new Response("Page not found", { status: 404 });
+      return notFound();
     },
   },
   fetch(req) {
-    return new Response("Page not found", { status: 404 });
+    return notFound();
+  },
+  error(err) {
+    console.error(err);
+    return page(
+      "Error",
+      `<h1>Something went wrong</h1>
+      <p>The server hit an error. <a href="/">Go home</a>.</p>`,
+      { status: 500 },
+    );
   },
 });
 
