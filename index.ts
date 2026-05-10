@@ -1,22 +1,14 @@
-// index.ts
-const layout = await Bun.file("./layout.html").text();
-
-function page(title: string, body: string): Response {
-  const html = layout
-    .replaceAll("{{title}}", title)
-    .replaceAll("{{body}}", body);
-  return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
-}
+import { home, about, newNote, createNote } from "./routes";
 
 export const server = Bun.serve({
   port: 3000,
   routes: {
-    "/": () =>
-      page("My Bun App", `<h1>Welcome</h1><p>This page is served by Bun.</p>`),
-    "/about": () =>
-      page("About", `<h1>About</h1><p>A simple site built with Bun.</p>`),
+    "/": home,
+    "/about": about,
+    "/notes/new": newNote,
+    "/notes": {
+      POST: createNote,
+    },
     "/ok": new Response("OK"),
     "/*": async (req) => {
       const url = new URL(req.url);
