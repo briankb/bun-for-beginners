@@ -56,3 +56,11 @@ export const createNote = async (req: Request) => {
   insertNote.run(title, body);
   return Response.redirect("/", 303);
 };
+
+export const success = () =>
+  page(
+    "Account Created",
+    `<h1>Account created</h1>
+    <p>Your account is ready. Logging in comes in the next chapter.</p>
+    <p><a href="/">Go home</a></p>`,
+  );

@@ -1,0 +1,1236 @@
+.
+├── about.html
+├── bun.lock
+├── db.ts
+├── form.html
+├── home.html
+├── index.test.ts
+├── index.ts
+├── layout.html
+├── node_modules
+│   ├── @types
+│   │   ├── bun
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   └── node
+│   │       ├── assert
+│   │       │   └── strict.d.ts
+│   │       ├── assert.d.ts
+│   │       ├── async_hooks.d.ts
+│   │       ├── buffer.buffer.d.ts
+│   │       ├── buffer.d.ts
+│   │       ├── child_process.d.ts
+│   │       ├── cluster.d.ts
+│   │       ├── compatibility
+│   │       │   └── iterators.d.ts
+│   │       ├── console.d.ts
+│   │       ├── constants.d.ts
+│   │       ├── crypto.d.ts
+│   │       ├── dgram.d.ts
+│   │       ├── diagnostics_channel.d.ts
+│   │       ├── dns
+│   │       │   └── promises.d.ts
+│   │       ├── dns.d.ts
+│   │       ├── domain.d.ts
+│   │       ├── events.d.ts
+│   │       ├── fs
+│   │       │   └── promises.d.ts
+│   │       ├── fs.d.ts
+│   │       ├── globals.d.ts
+│   │       ├── globals.typedarray.d.ts
+│   │       ├── http.d.ts
+│   │       ├── http2.d.ts
+│   │       ├── https.d.ts
+│   │       ├── index.d.ts
+│   │       ├── inspector
+│   │       │   └── promises.d.ts
+│   │       ├── inspector.d.ts
+│   │       ├── inspector.generated.d.ts
+│   │       ├── LICENSE
+│   │       ├── module.d.ts
+│   │       ├── net.d.ts
+│   │       ├── os.d.ts
+│   │       ├── package.json
+│   │       ├── path
+│   │       │   ├── posix.d.ts
+│   │       │   └── win32.d.ts
+│   │       ├── path.d.ts
+│   │       ├── perf_hooks.d.ts
+│   │       ├── process.d.ts
+│   │       ├── punycode.d.ts
+│   │       ├── querystring.d.ts
+│   │       ├── quic.d.ts
+│   │       ├── readline
+│   │       │   └── promises.d.ts
+│   │       ├── readline.d.ts
+│   │       ├── README.md
+│   │       ├── repl.d.ts
+│   │       ├── sea.d.ts
+│   │       ├── sqlite.d.ts
+│   │       ├── stream
+│   │       │   ├── consumers.d.ts
+│   │       │   ├── promises.d.ts
+│   │       │   └── web.d.ts
+│   │       ├── stream.d.ts
+│   │       ├── string_decoder.d.ts
+│   │       ├── test
+│   │       │   └── reporters.d.ts
+│   │       ├── test.d.ts
+│   │       ├── timers
+│   │       │   └── promises.d.ts
+│   │       ├── timers.d.ts
+│   │       ├── tls.d.ts
+│   │       ├── trace_events.d.ts
+│   │       ├── ts5.6
+│   │       │   ├── buffer.buffer.d.ts
+│   │       │   ├── compatibility
+│   │       │   │   └── float16array.d.ts
+│   │       │   ├── globals.typedarray.d.ts
+│   │       │   └── index.d.ts
+│   │       ├── ts5.7
+│   │       │   ├── compatibility
+│   │       │   │   └── float16array.d.ts
+│   │       │   └── index.d.ts
+│   │       ├── tty.d.ts
+│   │       ├── url.d.ts
+│   │       ├── util
+│   │       │   └── types.d.ts
+│   │       ├── util.d.ts
+│   │       ├── v8.d.ts
+│   │       ├── vm.d.ts
+│   │       ├── wasi.d.ts
+│   │       ├── web-globals
+│   │       │   ├── abortcontroller.d.ts
+│   │       │   ├── blob.d.ts
+│   │       │   ├── console.d.ts
+│   │       │   ├── crypto.d.ts
+│   │       │   ├── domexception.d.ts
+│   │       │   ├── encoding.d.ts
+│   │       │   ├── events.d.ts
+│   │       │   ├── fetch.d.ts
+│   │       │   ├── importmeta.d.ts
+│   │       │   ├── messaging.d.ts
+│   │       │   ├── navigator.d.ts
+│   │       │   ├── performance.d.ts
+│   │       │   ├── storage.d.ts
+│   │       │   ├── streams.d.ts
+│   │       │   ├── timers.d.ts
+│   │       │   └── url.d.ts
+│   │       ├── worker_threads.d.ts
+│   │       └── zlib.d.ts
+│   ├── ansi-regex
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── ansi-styles
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── bun-types
+│   │   ├── bun.d.ts
+│   │   ├── bun.ns.d.ts
+│   │   ├── bundle.d.ts
+│   │   ├── CLAUDE.md
+│   │   ├── deprecated.d.ts
+│   │   ├── devserver.d.ts
+│   │   ├── docs
+│   │   │   ├── bundler
+│   │   │   │   ├── bytecode.mdx
+│   │   │   │   ├── css.mdx
+│   │   │   │   ├── esbuild.mdx
+│   │   │   │   ├── executables.mdx
+│   │   │   │   ├── fullstack.mdx
+│   │   │   │   ├── hot-reloading.mdx
+│   │   │   │   ├── html-static.mdx
+│   │   │   │   ├── index.mdx
+│   │   │   │   ├── loaders.mdx
+│   │   │   │   ├── macros.mdx
+│   │   │   │   ├── minifier.mdx
+│   │   │   │   ├── plugins.mdx
+│   │   │   │   └── standalone-html.mdx
+│   │   │   ├── feedback.mdx
+│   │   │   ├── guides
+│   │   │   │   ├── binary
+│   │   │   │   │   ├── arraybuffer-to-array.mdx
+│   │   │   │   │   ├── arraybuffer-to-blob.mdx
+│   │   │   │   │   ├── arraybuffer-to-buffer.mdx
+│   │   │   │   │   ├── arraybuffer-to-string.mdx
+│   │   │   │   │   ├── arraybuffer-to-typedarray.mdx
+│   │   │   │   │   ├── blob-to-arraybuffer.mdx
+│   │   │   │   │   ├── blob-to-dataview.mdx
+│   │   │   │   │   ├── blob-to-stream.mdx
+│   │   │   │   │   ├── blob-to-string.mdx
+│   │   │   │   │   ├── blob-to-typedarray.mdx
+│   │   │   │   │   ├── buffer-to-arraybuffer.mdx
+│   │   │   │   │   ├── buffer-to-blob.mdx
+│   │   │   │   │   ├── buffer-to-readablestream.mdx
+│   │   │   │   │   ├── buffer-to-string.mdx
+│   │   │   │   │   ├── buffer-to-typedarray.mdx
+│   │   │   │   │   ├── dataview-to-string.mdx
+│   │   │   │   │   ├── typedarray-to-arraybuffer.mdx
+│   │   │   │   │   ├── typedarray-to-blob.mdx
+│   │   │   │   │   ├── typedarray-to-buffer.mdx
+│   │   │   │   │   ├── typedarray-to-dataview.mdx
+│   │   │   │   │   ├── typedarray-to-readablestream.mdx
+│   │   │   │   │   └── typedarray-to-string.mdx
+│   │   │   │   ├── deployment
+│   │   │   │   │   ├── aws-lambda.mdx
+│   │   │   │   │   ├── digital-ocean.mdx
+│   │   │   │   │   ├── google-cloud-run.mdx
+│   │   │   │   │   ├── railway.mdx
+│   │   │   │   │   ├── render.mdx
+│   │   │   │   │   └── vercel.mdx
+│   │   │   │   ├── ecosystem
+│   │   │   │   │   ├── astro.mdx
+│   │   │   │   │   ├── discordjs.mdx
+│   │   │   │   │   ├── docker.mdx
+│   │   │   │   │   ├── drizzle.mdx
+│   │   │   │   │   ├── elysia.mdx
+│   │   │   │   │   ├── express.mdx
+│   │   │   │   │   ├── gel.mdx
+│   │   │   │   │   ├── hono.mdx
+│   │   │   │   │   ├── mongoose.mdx
+│   │   │   │   │   ├── neon-drizzle.mdx
+│   │   │   │   │   ├── neon-serverless-postgres.mdx
+│   │   │   │   │   ├── nextjs.mdx
+│   │   │   │   │   ├── nuxt.mdx
+│   │   │   │   │   ├── pm2.mdx
+│   │   │   │   │   ├── prisma-postgres.mdx
+│   │   │   │   │   ├── prisma.mdx
+│   │   │   │   │   ├── qwik.mdx
+│   │   │   │   │   ├── react.mdx
+│   │   │   │   │   ├── remix.mdx
+│   │   │   │   │   ├── sentry.mdx
+│   │   │   │   │   ├── solidstart.mdx
+│   │   │   │   │   ├── ssr-react.mdx
+│   │   │   │   │   ├── stric.mdx
+│   │   │   │   │   ├── sveltekit.mdx
+│   │   │   │   │   ├── systemd.mdx
+│   │   │   │   │   ├── tanstack-start.mdx
+│   │   │   │   │   ├── upstash.mdx
+│   │   │   │   │   └── vite.mdx
+│   │   │   │   ├── html-rewriter
+│   │   │   │   │   ├── extract-links.mdx
+│   │   │   │   │   └── extract-social-meta.mdx
+│   │   │   │   ├── http
+│   │   │   │   │   ├── cluster.mdx
+│   │   │   │   │   ├── fetch-unix.mdx
+│   │   │   │   │   ├── fetch.mdx
+│   │   │   │   │   ├── file-uploads.mdx
+│   │   │   │   │   ├── hot.mdx
+│   │   │   │   │   ├── proxy.mdx
+│   │   │   │   │   ├── server.mdx
+│   │   │   │   │   ├── simple.mdx
+│   │   │   │   │   ├── sse.mdx
+│   │   │   │   │   ├── stream-file.mdx
+│   │   │   │   │   ├── stream-iterator.mdx
+│   │   │   │   │   ├── stream-node-streams-in-bun.mdx
+│   │   │   │   │   └── tls.mdx
+│   │   │   │   ├── index.mdx
+│   │   │   │   ├── install
+│   │   │   │   │   ├── add-dev.mdx
+│   │   │   │   │   ├── add-git.mdx
+│   │   │   │   │   ├── add-optional.mdx
+│   │   │   │   │   ├── add-peer.mdx
+│   │   │   │   │   ├── add-tarball.mdx
+│   │   │   │   │   ├── add.mdx
+│   │   │   │   │   ├── azure-artifacts.mdx
+│   │   │   │   │   ├── cicd.mdx
+│   │   │   │   │   ├── custom-registry.mdx
+│   │   │   │   │   ├── from-npm-install-to-bun-install.mdx
+│   │   │   │   │   ├── git-diff-bun-lockfile.mdx
+│   │   │   │   │   ├── jfrog-artifactory.mdx
+│   │   │   │   │   ├── npm-alias.mdx
+│   │   │   │   │   ├── registry-scope.mdx
+│   │   │   │   │   ├── trusted.mdx
+│   │   │   │   │   ├── workspaces.mdx
+│   │   │   │   │   └── yarnlock.mdx
+│   │   │   │   ├── process
+│   │   │   │   │   ├── argv.mdx
+│   │   │   │   │   ├── ctrl-c.mdx
+│   │   │   │   │   ├── ipc.mdx
+│   │   │   │   │   ├── nanoseconds.mdx
+│   │   │   │   │   ├── os-signals.mdx
+│   │   │   │   │   ├── spawn-stderr.mdx
+│   │   │   │   │   ├── spawn-stdout.mdx
+│   │   │   │   │   ├── spawn.mdx
+│   │   │   │   │   └── stdin.mdx
+│   │   │   │   ├── read-file
+│   │   │   │   │   ├── arraybuffer.mdx
+│   │   │   │   │   ├── buffer.mdx
+│   │   │   │   │   ├── exists.mdx
+│   │   │   │   │   ├── json.mdx
+│   │   │   │   │   ├── mime.mdx
+│   │   │   │   │   ├── stream.mdx
+│   │   │   │   │   ├── string.mdx
+│   │   │   │   │   ├── uint8array.mdx
+│   │   │   │   │   └── watch.mdx
+│   │   │   │   ├── runtime
+│   │   │   │   │   ├── build-time-constants.mdx
+│   │   │   │   │   ├── cicd.mdx
+│   │   │   │   │   ├── codesign-macos-executable.mdx
+│   │   │   │   │   ├── define-constant.mdx
+│   │   │   │   │   ├── delete-directory.mdx
+│   │   │   │   │   ├── delete-file.mdx
+│   │   │   │   │   ├── heap-snapshot.mdx
+│   │   │   │   │   ├── import-html.mdx
+│   │   │   │   │   ├── import-json.mdx
+│   │   │   │   │   ├── import-json5.mdx
+│   │   │   │   │   ├── import-toml.mdx
+│   │   │   │   │   ├── import-yaml.mdx
+│   │   │   │   │   ├── read-env.mdx
+│   │   │   │   │   ├── set-env.mdx
+│   │   │   │   │   ├── shell.mdx
+│   │   │   │   │   ├── timezone.mdx
+│   │   │   │   │   ├── tsconfig-paths.mdx
+│   │   │   │   │   ├── typescript.mdx
+│   │   │   │   │   ├── vscode-debugger.mdx
+│   │   │   │   │   └── web-debugger.mdx
+│   │   │   │   ├── streams
+│   │   │   │   │   ├── node-readable-to-arraybuffer.mdx
+│   │   │   │   │   ├── node-readable-to-blob.mdx
+│   │   │   │   │   ├── node-readable-to-json.mdx
+│   │   │   │   │   ├── node-readable-to-string.mdx
+│   │   │   │   │   ├── node-readable-to-uint8array.mdx
+│   │   │   │   │   ├── to-array.mdx
+│   │   │   │   │   ├── to-arraybuffer.mdx
+│   │   │   │   │   ├── to-blob.mdx
+│   │   │   │   │   ├── to-buffer.mdx
+│   │   │   │   │   ├── to-json.mdx
+│   │   │   │   │   ├── to-string.mdx
+│   │   │   │   │   └── to-typedarray.mdx
+│   │   │   │   ├── test
+│   │   │   │   │   ├── bail.mdx
+│   │   │   │   │   ├── concurrent-test-glob.mdx
+│   │   │   │   │   ├── coverage-threshold.mdx
+│   │   │   │   │   ├── coverage.mdx
+│   │   │   │   │   ├── happy-dom.mdx
+│   │   │   │   │   ├── migrate-from-jest.mdx
+│   │   │   │   │   ├── mock-clock.mdx
+│   │   │   │   │   ├── mock-functions.mdx
+│   │   │   │   │   ├── rerun-each.mdx
+│   │   │   │   │   ├── run-tests.mdx
+│   │   │   │   │   ├── skip-tests.mdx
+│   │   │   │   │   ├── snapshot.mdx
+│   │   │   │   │   ├── spy-on.mdx
+│   │   │   │   │   ├── svelte-test.mdx
+│   │   │   │   │   ├── testing-library.mdx
+│   │   │   │   │   ├── timeout.mdx
+│   │   │   │   │   ├── todo-tests.mdx
+│   │   │   │   │   ├── update-snapshots.mdx
+│   │   │   │   │   └── watch-mode.mdx
+│   │   │   │   ├── util
+│   │   │   │   │   ├── base64.mdx
+│   │   │   │   │   ├── deep-equals.mdx
+│   │   │   │   │   ├── deflate.mdx
+│   │   │   │   │   ├── detect-bun.mdx
+│   │   │   │   │   ├── entrypoint.mdx
+│   │   │   │   │   ├── escape-html.mdx
+│   │   │   │   │   ├── file-url-to-path.mdx
+│   │   │   │   │   ├── gzip.mdx
+│   │   │   │   │   ├── hash-a-password.mdx
+│   │   │   │   │   ├── import-meta-dir.mdx
+│   │   │   │   │   ├── import-meta-file.mdx
+│   │   │   │   │   ├── import-meta-path.mdx
+│   │   │   │   │   ├── javascript-uuid.mdx
+│   │   │   │   │   ├── main.mdx
+│   │   │   │   │   ├── path-to-file-url.mdx
+│   │   │   │   │   ├── sleep.mdx
+│   │   │   │   │   ├── upgrade.mdx
+│   │   │   │   │   ├── version.mdx
+│   │   │   │   │   └── which-path-to-executable-bin.mdx
+│   │   │   │   ├── websocket
+│   │   │   │   │   ├── compression.mdx
+│   │   │   │   │   ├── context.mdx
+│   │   │   │   │   ├── pubsub.mdx
+│   │   │   │   │   └── simple.mdx
+│   │   │   │   └── write-file
+│   │   │   │       ├── append.mdx
+│   │   │   │       ├── basic.mdx
+│   │   │   │       ├── blob.mdx
+│   │   │   │       ├── cat.mdx
+│   │   │   │       ├── file-cp.mdx
+│   │   │   │       ├── filesink.mdx
+│   │   │   │       ├── response.mdx
+│   │   │   │       ├── stdout.mdx
+│   │   │   │       ├── stream.mdx
+│   │   │   │       └── unlink.mdx
+│   │   │   ├── index.mdx
+│   │   │   ├── installation.mdx
+│   │   │   ├── pm
+│   │   │   │   ├── bunx.mdx
+│   │   │   │   ├── catalogs.mdx
+│   │   │   │   ├── cli
+│   │   │   │   │   ├── add.mdx
+│   │   │   │   │   ├── audit.mdx
+│   │   │   │   │   ├── info.mdx
+│   │   │   │   │   ├── install.mdx
+│   │   │   │   │   ├── link.mdx
+│   │   │   │   │   ├── outdated.mdx
+│   │   │   │   │   ├── patch.mdx
+│   │   │   │   │   ├── pm.mdx
+│   │   │   │   │   ├── publish.mdx
+│   │   │   │   │   ├── remove.mdx
+│   │   │   │   │   ├── update.mdx
+│   │   │   │   │   └── why.mdx
+│   │   │   │   ├── filter.mdx
+│   │   │   │   ├── global-cache.mdx
+│   │   │   │   ├── isolated-installs.mdx
+│   │   │   │   ├── lifecycle.mdx
+│   │   │   │   ├── lockfile.mdx
+│   │   │   │   ├── npmrc.mdx
+│   │   │   │   ├── overrides.mdx
+│   │   │   │   ├── scopes-registries.mdx
+│   │   │   │   ├── security-scanner-api.mdx
+│   │   │   │   └── workspaces.mdx
+│   │   │   ├── project
+│   │   │   │   ├── benchmarking.mdx
+│   │   │   │   ├── bindgen.mdx
+│   │   │   │   ├── building-windows.mdx
+│   │   │   │   ├── contributing.mdx
+│   │   │   │   ├── feedback.mdx
+│   │   │   │   ├── license.mdx
+│   │   │   │   └── roadmap.mdx
+│   │   │   ├── quickstart.mdx
+│   │   │   ├── README.md
+│   │   │   ├── runtime
+│   │   │   │   ├── archive.mdx
+│   │   │   │   ├── auto-install.mdx
+│   │   │   │   ├── binary-data.mdx
+│   │   │   │   ├── bun-apis.mdx
+│   │   │   │   ├── bunfig.mdx
+│   │   │   │   ├── c-compiler.mdx
+│   │   │   │   ├── child-process.mdx
+│   │   │   │   ├── color.mdx
+│   │   │   │   ├── console.mdx
+│   │   │   │   ├── cookies.mdx
+│   │   │   │   ├── cron.mdx
+│   │   │   │   ├── csrf.mdx
+│   │   │   │   ├── debugger.mdx
+│   │   │   │   ├── environment-variables.mdx
+│   │   │   │   ├── ffi.mdx
+│   │   │   │   ├── file-io.mdx
+│   │   │   │   ├── file-system-router.mdx
+│   │   │   │   ├── file-types.mdx
+│   │   │   │   ├── glob.mdx
+│   │   │   │   ├── globals.mdx
+│   │   │   │   ├── hashing.mdx
+│   │   │   │   ├── html-rewriter.mdx
+│   │   │   │   ├── http
+│   │   │   │   │   ├── cookies.mdx
+│   │   │   │   │   ├── error-handling.mdx
+│   │   │   │   │   ├── metrics.mdx
+│   │   │   │   │   ├── routing.mdx
+│   │   │   │   │   ├── server.mdx
+│   │   │   │   │   ├── tls.mdx
+│   │   │   │   │   └── websockets.mdx
+│   │   │   │   ├── index.mdx
+│   │   │   │   ├── json5.mdx
+│   │   │   │   ├── jsonl.mdx
+│   │   │   │   ├── jsx.mdx
+│   │   │   │   ├── markdown.mdx
+│   │   │   │   ├── module-resolution.mdx
+│   │   │   │   ├── networking
+│   │   │   │   │   ├── dns.mdx
+│   │   │   │   │   ├── fetch.mdx
+│   │   │   │   │   ├── tcp.mdx
+│   │   │   │   │   └── udp.mdx
+│   │   │   │   ├── node-api.mdx
+│   │   │   │   ├── nodejs-compat.mdx
+│   │   │   │   ├── plugins.mdx
+│   │   │   │   ├── redis.mdx
+│   │   │   │   ├── repl.mdx
+│   │   │   │   ├── s3.mdx
+│   │   │   │   ├── secrets.mdx
+│   │   │   │   ├── semver.mdx
+│   │   │   │   ├── shell.mdx
+│   │   │   │   ├── sql.mdx
+│   │   │   │   ├── sqlite.mdx
+│   │   │   │   ├── streams.mdx
+│   │   │   │   ├── templating
+│   │   │   │   │   ├── create.mdx
+│   │   │   │   │   └── init.mdx
+│   │   │   │   ├── toml.mdx
+│   │   │   │   ├── transpiler.mdx
+│   │   │   │   ├── typescript.mdx
+│   │   │   │   ├── utils.mdx
+│   │   │   │   ├── watch-mode.mdx
+│   │   │   │   ├── web-apis.mdx
+│   │   │   │   ├── webview.mdx
+│   │   │   │   ├── workers.mdx
+│   │   │   │   └── yaml.mdx
+│   │   │   ├── snippets
+│   │   │   │   └── cli
+│   │   │   │       ├── add.mdx
+│   │   │   │       ├── build.mdx
+│   │   │   │       ├── bunx.mdx
+│   │   │   │       ├── feedback.mdx
+│   │   │   │       ├── init.mdx
+│   │   │   │       ├── install.mdx
+│   │   │   │       ├── link.mdx
+│   │   │   │       ├── outdated.mdx
+│   │   │   │       ├── patch.mdx
+│   │   │   │       ├── publish.mdx
+│   │   │   │       ├── remove.mdx
+│   │   │   │       ├── run.mdx
+│   │   │   │       ├── test.mdx
+│   │   │   │       └── update.mdx
+│   │   │   ├── test
+│   │   │   │   ├── code-coverage.mdx
+│   │   │   │   ├── configuration.mdx
+│   │   │   │   ├── dates-times.mdx
+│   │   │   │   ├── discovery.mdx
+│   │   │   │   ├── dom.mdx
+│   │   │   │   ├── index.mdx
+│   │   │   │   ├── lifecycle.mdx
+│   │   │   │   ├── mocks.mdx
+│   │   │   │   ├── reporters.mdx
+│   │   │   │   ├── runtime-behavior.mdx
+│   │   │   │   ├── snapshots.mdx
+│   │   │   │   └── writing-tests.mdx
+│   │   │   ├── typescript-6.mdx
+│   │   │   └── typescript.mdx
+│   │   ├── extensions.d.ts
+│   │   ├── fetch.d.ts
+│   │   ├── ffi.d.ts
+│   │   ├── globals.d.ts
+│   │   ├── html-rewriter.d.ts
+│   │   ├── index.d.ts
+│   │   ├── jsc.d.ts
+│   │   ├── jsx.d.ts
+│   │   ├── overrides.d.ts
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   ├── redis.d.ts
+│   │   ├── s3.d.ts
+│   │   ├── security.d.ts
+│   │   ├── serve.d.ts
+│   │   ├── shell.d.ts
+│   │   ├── sql.d.ts
+│   │   ├── sqlite.d.ts
+│   │   ├── test-globals.d.ts
+│   │   ├── test.d.ts
+│   │   ├── vendor
+│   │   │   └── expect-type
+│   │   │       ├── branding.d.ts
+│   │   │       ├── index.d.ts
+│   │   │       ├── messages.d.ts
+│   │   │       ├── overloads.d.ts
+│   │   │       └── utils.d.ts
+│   │   └── wasm.d.ts
+│   ├── camelcase
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── cliui
+│   │   ├── CHANGELOG.md
+│   │   ├── index.js
+│   │   ├── LICENSE.txt
+│   │   ├── node_modules
+│   │   │   ├── string-width
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── license
+│   │   │   │   ├── node_modules
+│   │   │   │   │   └── is-fullwidth-code-point
+│   │   │   │   │       ├── index.d.ts
+│   │   │   │   │       ├── index.js
+│   │   │   │   │       ├── license
+│   │   │   │   │       ├── package.json
+│   │   │   │   │       └── readme.md
+│   │   │   │   ├── package.json
+│   │   │   │   └── readme.md
+│   │   │   └── strip-ansi
+│   │   │       ├── index.d.ts
+│   │   │       ├── index.js
+│   │   │       ├── license
+│   │   │       ├── node_modules
+│   │   │       │   └── ansi-regex
+│   │   │       │       ├── index.d.ts
+│   │   │       │       ├── index.js
+│   │   │       │       ├── license
+│   │   │       │       ├── package.json
+│   │   │       │       └── readme.md
+│   │   │       ├── package.json
+│   │   │       └── readme.md
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── color-convert
+│   │   ├── CHANGELOG.md
+│   │   ├── conversions.js
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   └── route.js
+│   ├── color-name
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── cowsay
+│   │   ├── build
+│   │   │   ├── cowsay.es.js
+│   │   │   └── cowsay.umd.js
+│   │   ├── cli.js
+│   │   ├── cows
+│   │   │   ├── ackbar.cow
+│   │   │   ├── aperture-blank.cow
+│   │   │   ├── aperture.cow
+│   │   │   ├── armadillo.cow
+│   │   │   ├── atat.cow
+│   │   │   ├── atom.cow
+│   │   │   ├── awesome-face.cow
+│   │   │   ├── banana.cow
+│   │   │   ├── bearface.cow
+│   │   │   ├── beavis.zen.cow
+│   │   │   ├── bees.cow
+│   │   │   ├── bill-the-cat.cow
+│   │   │   ├── biohazard.cow
+│   │   │   ├── bishop.cow
+│   │   │   ├── black-mesa.cow
+│   │   │   ├── bong.cow
+│   │   │   ├── box.cow
+│   │   │   ├── broken-heart.cow
+│   │   │   ├── bud-frogs.cow
+│   │   │   ├── bunny.cow
+│   │   │   ├── C3PO.cow
+│   │   │   ├── cake-with-candles.cow
+│   │   │   ├── cake.cow
+│   │   │   ├── cat.cow
+│   │   │   ├── cat2.cow
+│   │   │   ├── catfence.cow
+│   │   │   ├── charizardvice.cow
+│   │   │   ├── charlie.cow
+│   │   │   ├── cheese.cow
+│   │   │   ├── chessmen.cow
+│   │   │   ├── chito.cow
+│   │   │   ├── claw-arm.cow
+│   │   │   ├── clippy.cow
+│   │   │   ├── companion-cube.cow
+│   │   │   ├── cower.cow
+│   │   │   ├── cowfee.cow
+│   │   │   ├── cthulhu-mini.cow
+│   │   │   ├── cube.cow
+│   │   │   ├── daemon.cow
+│   │   │   ├── dalek-shooting.cow
+│   │   │   ├── dalek.cow
+│   │   │   ├── default.cow
+│   │   │   ├── docker-whale.cow
+│   │   │   ├── doge.cow
+│   │   │   ├── dolphin.cow
+│   │   │   ├── dragon-and-cow.cow
+│   │   │   ├── dragon.cow
+│   │   │   ├── ebi_furai.cow
+│   │   │   ├── elephant-in-snake.cow
+│   │   │   ├── elephant.cow
+│   │   │   ├── elephant2.cow
+│   │   │   ├── explosion.cow
+│   │   │   ├── eyes.cow
+│   │   │   ├── fat-banana.cow
+│   │   │   ├── fat-cow.cow
+│   │   │   ├── fence.cow
+│   │   │   ├── fire.cow
+│   │   │   ├── flaming-sheep.cow
+│   │   │   ├── fox.cow
+│   │   │   ├── ghost.cow
+│   │   │   ├── ghostbusters.cow
+│   │   │   ├── glados.cow
+│   │   │   ├── goat.cow
+│   │   │   ├── goat2.cow
+│   │   │   ├── golden-eagle.cow
+│   │   │   ├── hand.cow
+│   │   │   ├── happy-whale.cow
+│   │   │   ├── hedgehog.cow
+│   │   │   ├── hellokitty.cow
+│   │   │   ├── hippie.cow
+│   │   │   ├── hiya.cow
+│   │   │   ├── hiyoko.cow
+│   │   │   ├── homer.cow
+│   │   │   ├── hypno.cow
+│   │   │   ├── ibm.cow
+│   │   │   ├── iwashi.cow
+│   │   │   ├── jellyfish.cow
+│   │   │   ├── karl_marx.cow
+│   │   │   ├── kilroy.cow
+│   │   │   ├── king.cow
+│   │   │   ├── kiss.cow
+│   │   │   ├── kitten.cow
+│   │   │   ├── kitty.cow
+│   │   │   ├── knight.cow
+│   │   │   ├── koala.cow
+│   │   │   ├── kosh.cow
+│   │   │   ├── lamb.cow
+│   │   │   ├── lamb2.cow
+│   │   │   ├── lightbulb.cow
+│   │   │   ├── lobster.cow
+│   │   │   ├── lollerskates.cow
+│   │   │   ├── luke-koala.cow
+│   │   │   ├── mailchimp.cow
+│   │   │   ├── maze-runner.cow
+│   │   │   ├── mech-and-cow.cow
+│   │   │   ├── meow.cow
+│   │   │   ├── milk.cow
+│   │   │   ├── minotaur.cow
+│   │   │   ├── mona-lisa.cow
+│   │   │   ├── moofasa.cow
+│   │   │   ├── mooghidjirah.cow
+│   │   │   ├── moojira.cow
+│   │   │   ├── moose.cow
+│   │   │   ├── mule.cow
+│   │   │   ├── mutilated.cow
+│   │   │   ├── nyan.cow
+│   │   │   ├── octopus.cow
+│   │   │   ├── okazu.cow
+│   │   │   ├── owl.cow
+│   │   │   ├── pawn.cow
+│   │   │   ├── periodic-table.cow
+│   │   │   ├── personality-sphere.cow
+│   │   │   ├── pinball-machine.cow
+│   │   │   ├── psychiatrichelp.cow
+│   │   │   ├── psychiatrichelp2.cow
+│   │   │   ├── pterodactyl.cow
+│   │   │   ├── queen.cow
+│   │   │   ├── R2-D2.cow
+│   │   │   ├── radio.cow
+│   │   │   ├── ren.cow
+│   │   │   ├── renge.cow
+│   │   │   ├── robot.cow
+│   │   │   ├── robotfindskitten.cow
+│   │   │   ├── roflcopter.cow
+│   │   │   ├── rook.cow
+│   │   │   ├── sachiko.cow
+│   │   │   ├── satanic.cow
+│   │   │   ├── seahorse-big.cow
+│   │   │   ├── seahorse.cow
+│   │   │   ├── sheep.cow
+│   │   │   ├── shikato.cow
+│   │   │   ├── shrug.cow
+│   │   │   ├── skeleton.cow
+│   │   │   ├── small.cow
+│   │   │   ├── smiling-octopus.cow
+│   │   │   ├── snoopy.cow
+│   │   │   ├── snoopyhouse.cow
+│   │   │   ├── snoopysleep.cow
+│   │   │   ├── spidercow.cow
+│   │   │   ├── squid.cow
+│   │   │   ├── squirrel.cow
+│   │   │   ├── stegosaurus.cow
+│   │   │   ├── stimpy.cow
+│   │   │   ├── sudowoodo.cow
+│   │   │   ├── supermilker.cow
+│   │   │   ├── surgery.cow
+│   │   │   ├── tableflip.cow
+│   │   │   ├── taxi.cow
+│   │   │   ├── telebears.cow
+│   │   │   ├── template.cow
+│   │   │   ├── threader.cow
+│   │   │   ├── threecubes.cow
+│   │   │   ├── toaster.cow
+│   │   │   ├── tortoise.cow
+│   │   │   ├── turkey.cow
+│   │   │   ├── turtle.cow
+│   │   │   ├── tux-big.cow
+│   │   │   ├── tux.cow
+│   │   │   ├── tweety-bird.cow
+│   │   │   ├── USA.cow
+│   │   │   ├── vader-koala.cow
+│   │   │   ├── vader.cow
+│   │   │   ├── weeping-angel.cow
+│   │   │   ├── whale.cow
+│   │   │   ├── wizard.cow
+│   │   │   ├── wood.cow
+│   │   │   ├── world.cow
+│   │   │   ├── www.cow
+│   │   │   ├── yasuna_01.cow
+│   │   │   ├── yasuna_02.cow
+│   │   │   ├── yasuna_03.cow
+│   │   │   ├── yasuna_03a.cow
+│   │   │   ├── yasuna_04.cow
+│   │   │   ├── yasuna_05.cow
+│   │   │   ├── yasuna_06.cow
+│   │   │   ├── yasuna_07.cow
+│   │   │   ├── yasuna_08.cow
+│   │   │   ├── yasuna_09.cow
+│   │   │   ├── yasuna_10.cow
+│   │   │   ├── yasuna_11.cow
+│   │   │   ├── yasuna_12.cow
+│   │   │   ├── yasuna_13.cow
+│   │   │   ├── yasuna_14.cow
+│   │   │   ├── yasuna_16.cow
+│   │   │   ├── yasuna_17.cow
+│   │   │   ├── yasuna_18.cow
+│   │   │   ├── yasuna_19.cow
+│   │   │   ├── yasuna_20.cow
+│   │   │   ├── ymd_udon.cow
+│   │   │   └── zen-noh-milk.cow
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── balloon.js
+│   │   │   ├── cows.js
+│   │   │   ├── faces.js
+│   │   │   └── replacer.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── decamelize
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── emoji-regex
+│   │   ├── es2015
+│   │   │   ├── index.js
+│   │   │   └── text.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── LICENSE-MIT.txt
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   └── text.js
+│   ├── find-up
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── get-caller-file
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── index.js.map
+│   │   ├── LICENSE.md
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── get-stdin
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── is-fullwidth-code-point
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── locate-path
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── p-limit
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── p-locate
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── p-try
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── path-exists
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── require-directory
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.markdown
+│   ├── require-main-filename
+│   │   ├── CHANGELOG.md
+│   │   ├── index.js
+│   │   ├── LICENSE.txt
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── set-blocking
+│   │   ├── CHANGELOG.md
+│   │   ├── index.js
+│   │   ├── LICENSE.txt
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── string-width
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── strip-ansi
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── strip-final-newline
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── typescript
+│   │   ├── bin
+│   │   │   ├── tsc
+│   │   │   └── tsserver
+│   │   ├── lib
+│   │   │   ├── _tsc.js
+│   │   │   ├── _tsserver.js
+│   │   │   ├── _typingsInstaller.js
+│   │   │   ├── cs
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── de
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── es
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── fr
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── it
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── ja
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── ko
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── lib.d.ts
+│   │   │   ├── lib.decorators.d.ts
+│   │   │   ├── lib.decorators.legacy.d.ts
+│   │   │   ├── lib.dom.asynciterable.d.ts
+│   │   │   ├── lib.dom.d.ts
+│   │   │   ├── lib.dom.iterable.d.ts
+│   │   │   ├── lib.es2015.collection.d.ts
+│   │   │   ├── lib.es2015.core.d.ts
+│   │   │   ├── lib.es2015.d.ts
+│   │   │   ├── lib.es2015.generator.d.ts
+│   │   │   ├── lib.es2015.iterable.d.ts
+│   │   │   ├── lib.es2015.promise.d.ts
+│   │   │   ├── lib.es2015.proxy.d.ts
+│   │   │   ├── lib.es2015.reflect.d.ts
+│   │   │   ├── lib.es2015.symbol.d.ts
+│   │   │   ├── lib.es2015.symbol.wellknown.d.ts
+│   │   │   ├── lib.es2016.array.include.d.ts
+│   │   │   ├── lib.es2016.d.ts
+│   │   │   ├── lib.es2016.full.d.ts
+│   │   │   ├── lib.es2016.intl.d.ts
+│   │   │   ├── lib.es2017.arraybuffer.d.ts
+│   │   │   ├── lib.es2017.d.ts
+│   │   │   ├── lib.es2017.date.d.ts
+│   │   │   ├── lib.es2017.full.d.ts
+│   │   │   ├── lib.es2017.intl.d.ts
+│   │   │   ├── lib.es2017.object.d.ts
+│   │   │   ├── lib.es2017.sharedmemory.d.ts
+│   │   │   ├── lib.es2017.string.d.ts
+│   │   │   ├── lib.es2017.typedarrays.d.ts
+│   │   │   ├── lib.es2018.asyncgenerator.d.ts
+│   │   │   ├── lib.es2018.asynciterable.d.ts
+│   │   │   ├── lib.es2018.d.ts
+│   │   │   ├── lib.es2018.full.d.ts
+│   │   │   ├── lib.es2018.intl.d.ts
+│   │   │   ├── lib.es2018.promise.d.ts
+│   │   │   ├── lib.es2018.regexp.d.ts
+│   │   │   ├── lib.es2019.array.d.ts
+│   │   │   ├── lib.es2019.d.ts
+│   │   │   ├── lib.es2019.full.d.ts
+│   │   │   ├── lib.es2019.intl.d.ts
+│   │   │   ├── lib.es2019.object.d.ts
+│   │   │   ├── lib.es2019.string.d.ts
+│   │   │   ├── lib.es2019.symbol.d.ts
+│   │   │   ├── lib.es2020.bigint.d.ts
+│   │   │   ├── lib.es2020.d.ts
+│   │   │   ├── lib.es2020.date.d.ts
+│   │   │   ├── lib.es2020.full.d.ts
+│   │   │   ├── lib.es2020.intl.d.ts
+│   │   │   ├── lib.es2020.number.d.ts
+│   │   │   ├── lib.es2020.promise.d.ts
+│   │   │   ├── lib.es2020.sharedmemory.d.ts
+│   │   │   ├── lib.es2020.string.d.ts
+│   │   │   ├── lib.es2020.symbol.wellknown.d.ts
+│   │   │   ├── lib.es2021.d.ts
+│   │   │   ├── lib.es2021.full.d.ts
+│   │   │   ├── lib.es2021.intl.d.ts
+│   │   │   ├── lib.es2021.promise.d.ts
+│   │   │   ├── lib.es2021.string.d.ts
+│   │   │   ├── lib.es2021.weakref.d.ts
+│   │   │   ├── lib.es2022.array.d.ts
+│   │   │   ├── lib.es2022.d.ts
+│   │   │   ├── lib.es2022.error.d.ts
+│   │   │   ├── lib.es2022.full.d.ts
+│   │   │   ├── lib.es2022.intl.d.ts
+│   │   │   ├── lib.es2022.object.d.ts
+│   │   │   ├── lib.es2022.regexp.d.ts
+│   │   │   ├── lib.es2022.string.d.ts
+│   │   │   ├── lib.es2023.array.d.ts
+│   │   │   ├── lib.es2023.collection.d.ts
+│   │   │   ├── lib.es2023.d.ts
+│   │   │   ├── lib.es2023.full.d.ts
+│   │   │   ├── lib.es2023.intl.d.ts
+│   │   │   ├── lib.es2024.arraybuffer.d.ts
+│   │   │   ├── lib.es2024.collection.d.ts
+│   │   │   ├── lib.es2024.d.ts
+│   │   │   ├── lib.es2024.full.d.ts
+│   │   │   ├── lib.es2024.object.d.ts
+│   │   │   ├── lib.es2024.promise.d.ts
+│   │   │   ├── lib.es2024.regexp.d.ts
+│   │   │   ├── lib.es2024.sharedmemory.d.ts
+│   │   │   ├── lib.es2024.string.d.ts
+│   │   │   ├── lib.es5.d.ts
+│   │   │   ├── lib.es6.d.ts
+│   │   │   ├── lib.esnext.array.d.ts
+│   │   │   ├── lib.esnext.collection.d.ts
+│   │   │   ├── lib.esnext.d.ts
+│   │   │   ├── lib.esnext.decorators.d.ts
+│   │   │   ├── lib.esnext.disposable.d.ts
+│   │   │   ├── lib.esnext.error.d.ts
+│   │   │   ├── lib.esnext.float16.d.ts
+│   │   │   ├── lib.esnext.full.d.ts
+│   │   │   ├── lib.esnext.intl.d.ts
+│   │   │   ├── lib.esnext.iterator.d.ts
+│   │   │   ├── lib.esnext.promise.d.ts
+│   │   │   ├── lib.esnext.sharedmemory.d.ts
+│   │   │   ├── lib.scripthost.d.ts
+│   │   │   ├── lib.webworker.asynciterable.d.ts
+│   │   │   ├── lib.webworker.d.ts
+│   │   │   ├── lib.webworker.importscripts.d.ts
+│   │   │   ├── lib.webworker.iterable.d.ts
+│   │   │   ├── pl
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── pt-br
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── ru
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── tr
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   ├── tsc.js
+│   │   │   ├── tsserver.js
+│   │   │   ├── tsserverlibrary.d.ts
+│   │   │   ├── tsserverlibrary.js
+│   │   │   ├── typescript.d.ts
+│   │   │   ├── typescript.js
+│   │   │   ├── typesMap.json
+│   │   │   ├── typingsInstaller.js
+│   │   │   ├── watchGuard.js
+│   │   │   ├── zh-cn
+│   │   │   │   └── diagnosticMessages.generated.json
+│   │   │   └── zh-tw
+│   │   │       └── diagnosticMessages.generated.json
+│   │   ├── LICENSE.txt
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   ├── SECURITY.md
+│   │   └── ThirdPartyNoticeText.txt
+│   ├── undici-types
+│   │   ├── agent.d.ts
+│   │   ├── api.d.ts
+│   │   ├── balanced-pool.d.ts
+│   │   ├── cache-interceptor.d.ts
+│   │   ├── cache.d.ts
+│   │   ├── client-stats.d.ts
+│   │   ├── client.d.ts
+│   │   ├── connector.d.ts
+│   │   ├── content-type.d.ts
+│   │   ├── cookies.d.ts
+│   │   ├── diagnostics-channel.d.ts
+│   │   ├── dispatcher.d.ts
+│   │   ├── env-http-proxy-agent.d.ts
+│   │   ├── errors.d.ts
+│   │   ├── eventsource.d.ts
+│   │   ├── fetch.d.ts
+│   │   ├── formdata.d.ts
+│   │   ├── global-dispatcher.d.ts
+│   │   ├── global-origin.d.ts
+│   │   ├── h2c-client.d.ts
+│   │   ├── handlers.d.ts
+│   │   ├── header.d.ts
+│   │   ├── index.d.ts
+│   │   ├── interceptors.d.ts
+│   │   ├── LICENSE
+│   │   ├── mock-agent.d.ts
+│   │   ├── mock-call-history.d.ts
+│   │   ├── mock-client.d.ts
+│   │   ├── mock-errors.d.ts
+│   │   ├── mock-interceptor.d.ts
+│   │   ├── mock-pool.d.ts
+│   │   ├── package.json
+│   │   ├── patch.d.ts
+│   │   ├── pool-stats.d.ts
+│   │   ├── pool.d.ts
+│   │   ├── proxy-agent.d.ts
+│   │   ├── readable.d.ts
+│   │   ├── README.md
+│   │   ├── retry-agent.d.ts
+│   │   ├── retry-handler.d.ts
+│   │   ├── round-robin-pool.d.ts
+│   │   ├── snapshot-agent.d.ts
+│   │   ├── util.d.ts
+│   │   ├── utility.d.ts
+│   │   ├── webidl.d.ts
+│   │   └── websocket.d.ts
+│   ├── which-module
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── wrap-ansi
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── node_modules
+│   │   │   ├── string-width
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── license
+│   │   │   │   ├── node_modules
+│   │   │   │   │   └── is-fullwidth-code-point
+│   │   │   │   │       ├── index.d.ts
+│   │   │   │   │       ├── index.js
+│   │   │   │   │       ├── license
+│   │   │   │   │       ├── package.json
+│   │   │   │   │       └── readme.md
+│   │   │   │   ├── package.json
+│   │   │   │   └── readme.md
+│   │   │   └── strip-ansi
+│   │   │       ├── index.d.ts
+│   │   │       ├── index.js
+│   │   │       ├── license
+│   │   │       ├── node_modules
+│   │   │       │   └── ansi-regex
+│   │   │       │       ├── index.d.ts
+│   │   │       │       ├── index.js
+│   │   │       │       ├── license
+│   │   │       │       ├── package.json
+│   │   │       │       └── readme.md
+│   │   │       ├── package.json
+│   │   │       └── readme.md
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── y18n
+│   │   ├── CHANGELOG.md
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── yargs
+│   │   ├── build
+│   │   │   └── lib
+│   │   │       ├── apply-extends.d.ts
+│   │   │       ├── apply-extends.js
+│   │   │       ├── argsert.d.ts
+│   │   │       ├── argsert.js
+│   │   │       ├── command.d.ts
+│   │   │       ├── command.js
+│   │   │       ├── common-types.d.ts
+│   │   │       ├── common-types.js
+│   │   │       ├── completion-templates.d.ts
+│   │   │       ├── completion-templates.js
+│   │   │       ├── completion.d.ts
+│   │   │       ├── completion.js
+│   │   │       ├── is-promise.d.ts
+│   │   │       ├── is-promise.js
+│   │   │       ├── levenshtein.d.ts
+│   │   │       ├── levenshtein.js
+│   │   │       ├── middleware.d.ts
+│   │   │       ├── middleware.js
+│   │   │       ├── obj-filter.d.ts
+│   │   │       ├── obj-filter.js
+│   │   │       ├── parse-command.d.ts
+│   │   │       ├── parse-command.js
+│   │   │       ├── process-argv.d.ts
+│   │   │       ├── process-argv.js
+│   │   │       ├── usage.d.ts
+│   │   │       ├── usage.js
+│   │   │       ├── validation.d.ts
+│   │   │       ├── validation.js
+│   │   │       ├── yargs.d.ts
+│   │   │       ├── yargs.js
+│   │   │       ├── yerror.d.ts
+│   │   │       └── yerror.js
+│   │   ├── CHANGELOG.md
+│   │   ├── index.js
+│   │   ├── LICENSE
+│   │   ├── locales
+│   │   │   ├── be.json
+│   │   │   ├── de.json
+│   │   │   ├── en.json
+│   │   │   ├── es.json
+│   │   │   ├── fi.json
+│   │   │   ├── fr.json
+│   │   │   ├── hi.json
+│   │   │   ├── hu.json
+│   │   │   ├── id.json
+│   │   │   ├── it.json
+│   │   │   ├── ja.json
+│   │   │   ├── ko.json
+│   │   │   ├── nb.json
+│   │   │   ├── nl.json
+│   │   │   ├── nn.json
+│   │   │   ├── pirate.json
+│   │   │   ├── pl.json
+│   │   │   ├── pt_BR.json
+│   │   │   ├── pt.json
+│   │   │   ├── ru.json
+│   │   │   ├── th.json
+│   │   │   ├── tr.json
+│   │   │   ├── zh_CN.json
+│   │   │   └── zh_TW.json
+│   │   ├── node_modules
+│   │   │   └── string-width
+│   │   │       ├── index.d.ts
+│   │   │       ├── index.js
+│   │   │       ├── license
+│   │   │       ├── node_modules
+│   │   │       │   ├── is-fullwidth-code-point
+│   │   │       │   │   ├── index.d.ts
+│   │   │       │   │   ├── index.js
+│   │   │       │   │   ├── license
+│   │   │       │   │   ├── package.json
+│   │   │       │   │   └── readme.md
+│   │   │       │   └── strip-ansi
+│   │   │       │       ├── index.d.ts
+│   │   │       │       ├── index.js
+│   │   │       │       ├── license
+│   │   │       │       ├── node_modules
+│   │   │       │       │   └── ansi-regex
+│   │   │       │       │       ├── index.d.ts
+│   │   │       │       │       ├── index.js
+│   │   │       │       │       ├── license
+│   │   │       │       │       ├── package.json
+│   │   │       │       │       └── readme.md
+│   │   │       │       ├── package.json
+│   │   │       │       └── readme.md
+│   │   │       ├── package.json
+│   │   │       └── readme.md
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   └── yargs.js
+│   └── yargs-parser
+│       ├── CHANGELOG.md
+│       ├── index.js
+│       ├── lib
+│       │   └── tokenize-arg-string.js
+│       ├── LICENSE.txt
+│       ├── package.json
+│       └── README.md
+├── notes.db
+├── package.json
+├── public
+│   └── style.css
+├── README.md
+├── routes.ts
+├── templates.ts
+├── tree-view-end-of-chapter-08.txt
+├── tsconfig.json
+├── wordcount.test.ts
+└── wordcount.ts
+
+127 directories, 1107 files

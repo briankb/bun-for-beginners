@@ -1,5 +1,6 @@
 // index.ts
-import { home, about, newNote, createNote } from "./routes";
+import { home, about, newNote, createNote, success } from "./routes";
+import { signup, createUser } from "./users";
 import { notFound, page } from "./templates";
 
 export const server = Bun.serve({
@@ -11,7 +12,12 @@ export const server = Bun.serve({
     "/notes": {
       POST: createNote,
     },
+    "/signup": {
+      GET: signup,
+      POST: createUser,
+    },
     "/ok": new Response("OK"),
+    "/success": success,
     "/*": async (req) => {
       const url = new URL(req.url);
       const file = Bun.file(`./public${url.pathname}`);
