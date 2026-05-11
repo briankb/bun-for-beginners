@@ -112,20 +112,6 @@ ${errorList}
 </form>`;
 }
 
-function validateSignup(
-  email: string,
-  password: string,
-  passwordConfirm: string,
-): string[] {
-  const errors: string[] = [];
-  if (email.trim() === "") errors.push("Email is required.");
-  else if (!email.includes("@")) errors.push("Email must contain an @.");
-  if (password.length < 8)
-    errors.push("Password must be at least 8 characters.");
-  if (password !== passwordConfirm) errors.push("Passwords do not match.");
-  return errors;
-}
-
 export const login = () => page("Log In", renderLoginForm());
 
 export const createLogin = async (req: Request) => {
