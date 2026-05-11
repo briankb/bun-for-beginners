@@ -23,3 +23,13 @@ db.run(`
     updated_at INTEGER NOT NULL DEFAULT (unixepoch())
   )
 `);
+
+db.run(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    expires_at INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
+`);

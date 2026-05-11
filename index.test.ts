@@ -6,6 +6,7 @@ import { db } from "./db";
 beforeEach(() => {
   db.run("DELETE FROM notes");
   db.run("DELETE FROM users");
+  db.run("DELETE FROM sessions");
 });
 
 describe("server routes", () => {
@@ -325,5 +326,143 @@ describe("sign up", () => {
       .query("SELECT COUNT(*) as n FROM users WHERE email = ?")
       .get("eve@example.com") as { n: number };
     expect(count.n).toBe(1);
+  });
+});
+
+describe("login and logout", () => {
+  async function signUp(email: string, password: string) {
+    const form = new FormData();
+    form.set("email", email);
+    form.set("password", password);
+    form.set("password_confirm", password);
+    await fetch("http://localhost:3000/signup", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+  }
+
+  function sessionCookie(res: Response): string | null {
+    const setCookie = res.headers.get("set-cookie");
+    if (!setCookie) return null;
+    const match = setCookie.match(/session_id=([^;]+)/);
+    return match ? match[1] : null;
+  }
+
+  test("GET /login returns the form", async () => {
+    const res = await fetch("http://localhost:3000/login");
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('<form method="POST" action="/login">');
+    expect(html).toContain('name="email"');
+    expect(html).toContain('name="password"');
+  });
+
+  test("valid login sets a session cookie and redirects home", async () => {
+    await signUp("alice@example.com", "longenough");
+
+    const form = new FormData();
+    form.set("email", "alice@example.com");
+    form.set("password", "longenough");
+
+    const res = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/");
+
+    const cookie = sessionCookie(res);
+    expect(cookie).not.toBeNull();
+    expect(cookie!.length).toBeGreaterThan(10);
+
+    const row = db
+      .query("SELECT user_id FROM sessions WHERE id = ?")
+      .get(cookie!) as { user_id: number } | null;
+    expect(row).not.toBeNull();
+  });
+
+  test("wrong password returns the form with an error", async () => {
+    await signUp("bob@example.com", "longenough");
+
+    const form = new FormData();
+    form.set("email", "bob@example.com");
+    form.set("password", "wrongpassword");
+
+    const res = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(422);
+    const html = await res.text();
+    expect(html).toContain("Email or password is incorrect.");
+    expect(html).toContain('value="bob@example.com"');
+    expect(html).not.toContain("wrongpassword");
+
+    const count = db.query("SELECT COUNT(*) as n FROM sessions").get() as {
+      n: number;
+    };
+    expect(count.n).toBe(0);
+  });
+
+  test("unknown email returns the same error as wrong password", async () => {
+    const form = new FormData();
+    form.set("email", "nobody@example.com");
+    form.set("password", "longenough");
+
+    const res = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      body: form,
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(422);
+    const html = await res.text();
+    expect(html).toContain("Email or password is incorrect.");
+    expect(html).not.toContain("not registered");
+  });
+
+  test("logout deletes the session row and clears the cookie", async () => {
+    await signUp("carol@example.com", "longenough");
+
+    const loginForm = new FormData();
+    loginForm.set("email", "carol@example.com");
+    loginForm.set("password", "longenough");
+
+    const loginRes = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      body: loginForm,
+      redirect: "manual",
+    });
+    const cookie = sessionCookie(loginRes)!;
+
+    const logoutRes = await fetch("http://localhost:3000/logout", {
+      method: "POST",
+      headers: { cookie: `session_id=${cookie}` },
+      redirect: "manual",
+    });
+
+    expect(logoutRes.status).toBe(303);
+    expect(logoutRes.headers.get("location")).toBe("/");
+
+    const setCookie = logoutRes.headers.get("set-cookie") ?? "";
+    expect(setCookie).toContain("session_id=");
+    expect(setCookie.toLowerCase()).toMatch(/max-age=0|expires=/);
+
+    const row = db.query("SELECT id FROM sessions WHERE id = ?").get(cookie);
+    expect(row).toBeNull();
+  });
+
+  test("logout without a session redirects home and does nothing", async () => {
+    const res = await fetch("http://localhost:3000/logout", {
+      method: "POST",
+      redirect: "manual",
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/");
   });
 });
