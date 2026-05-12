@@ -1,4 +1,7 @@
 // templates.ts
+import { db } from "./db";
+import type { User } from "./users";
+
 const layout = await Bun.file("./layout.html").text();
 
 export function page(
@@ -6,16 +9,50 @@ export function page(
   body: string,
   init?: ResponseInit,
 ): Response {
-  const html = layout
-    .replaceAll("{{title}}", title)
-    .replaceAll("{{body}}", body);
-  return new Response(html, {
-    ...init,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      ...(init?.headers ?? {}),
+  return new Response(
+    layout.replace("{{title}}", title).replace("{{body}}", body),
+    {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+      ...init,
     },
-  });
+  );
+}
+
+export function pageFor(
+  user: User | null,
+  title: string,
+  body: string,
+  init?: ResponseInit,
+): Response {
+  return new Response(
+    layout
+      .replace("{{title}}", title)
+      .replace("{{nav}}", renderNav(user))
+      .replace("{{body}}", body),
+    {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+      ...init,
+    },
+  );
+}
+
+function renderNav(user: User | null): string {
+  if (user) {
+    return `<nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/notes/new">New Note</a>
+      <form method="POST" action="/logout" style="display:inline">
+        <button type="submit">Log Out</button>
+      </form>
+    </nav>`;
+  }
+  return `<nav>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/signup">Sign Up</a>
+    <a href="/login">Log In</a>
+  </nav>`;
 }
 
 export function escapeHtml(s: string): string {
@@ -43,16 +80,17 @@ ${errorList}
   <input id="title" name="title" type="text" value="${escapeHtml(values.title)}" required />
 
   <label for="body">Body</label>
-  <textarea id="body" name="body" rows="6" required>${escapeHtml(values.body)}</textarea>
+  <textarea id="body" name="body" required>${escapeHtml(values.body)}</textarea>
 
-  <button type="submit">Save</button>
+  <button type="submit">Save Note</button>
 </form>`;
 }
 
 export function notFound(): Response {
-  return page(
+  return pageFor(
+    null,
     "Not Found",
-    `<h1>Not found</h1>
+    `<h1>Not Found</h1>
     <p>That page does not exist. <a href="/">Go home</a>.</p>`,
     { status: 404 },
   );

@@ -1,10 +1,7 @@
 // users.ts
-import { page, escapeHtml } from "./templates";
-import { createSession, endSession, findSessionById } from "./sessions";
+import { pageFor, escapeHtml } from "./templates";
 import { db } from "./db";
-
-const findUserByEmail = db.query("SELECT * FROM users WHERE email = ?");
-const findUserById = db.query("SELECT * FROM users WHERE id = ?");
+import { createSession, endSession, findSessionById } from "./sessions";
 
 export type User = {
   id: number;
@@ -17,6 +14,8 @@ export type User = {
 const insertUser = db.prepare(
   "INSERT INTO users (email, password_hash) VALUES (?, ?)",
 );
+const findUserByEmail = db.query("SELECT * FROM users WHERE email = ?");
+const findUserById = db.query("SELECT * FROM users WHERE id = ?");
 
 function renderSignupForm(
   values: { email: string } = { email: "" },
@@ -43,53 +42,6 @@ ${errorList}
 </form>`;
 }
 
-export const signup = () => page("Sign Up", renderSignupForm());
-
-function validateSignup(
-  email: string,
-  password: string,
-  passwordConfirm: string,
-): string[] {
-  const errors: string[] = [];
-  if (email.trim() === "") errors.push("Email is required.");
-  else if (!email.includes("@")) errors.push("Email must contain an @.");
-  if (password.length < 8)
-    errors.push("Password must be at least 8 characters.");
-  if (password !== passwordConfirm) errors.push("Passwords do not match.");
-  return errors;
-}
-
-export const createUser = async (req: Request) => {
-  const form = await req.formData();
-  const email = String(form.get("email") ?? "");
-  const password = String(form.get("password") ?? "");
-  const passwordConfirm = String(form.get("password_confirm") ?? "");
-
-  const errors = validateSignup(email, password, passwordConfirm);
-  if (errors.length > 0) {
-    return page("Sign Up", renderSignupForm({ email }, errors), {
-      status: 422,
-    });
-  }
-
-  const passwordHash = await Bun.password.hash(password);
-
-  try {
-    insertUser.run(email, passwordHash);
-  } catch (err) {
-    if (err instanceof Error && err.message.includes("UNIQUE")) {
-      return page(
-        "Sign Up",
-        renderSignupForm({ email }, ["Email already registered."]),
-        { status: 422 },
-      );
-    }
-    throw err;
-  }
-
-  return Response.redirect("/success", 303);
-};
-
 function renderLoginForm(
   values: { email: string } = { email: "" },
   errors: string[] = [],
@@ -112,7 +64,59 @@ ${errorList}
 </form>`;
 }
 
-export const login = () => page("Log In", renderLoginForm());
+function validateSignup(
+  email: string,
+  password: string,
+  passwordConfirm: string,
+): string[] {
+  const errors: string[] = [];
+  if (email.trim() === "") errors.push("Email is required.");
+  else if (!email.includes("@")) errors.push("Email must contain an @.");
+  if (password.length < 8)
+    errors.push("Password must be at least 8 characters.");
+  if (password !== passwordConfirm) errors.push("Passwords do not match.");
+  return errors;
+}
+
+export const signup = (req: Request) =>
+  pageFor(currentUser(req), "Sign Up", renderSignupForm());
+
+export const createUser = async (req: Request) => {
+  const form = await req.formData();
+  const email = String(form.get("email") ?? "");
+  const password = String(form.get("password") ?? "");
+  const passwordConfirm = String(form.get("password_confirm") ?? "");
+
+  const errors = validateSignup(email, password, passwordConfirm);
+  if (errors.length > 0) {
+    return pageFor(
+      currentUser(req),
+      "Sign Up",
+      renderSignupForm({ email }, errors),
+      { status: 422 },
+    );
+  }
+
+  try {
+    const hash = await Bun.password.hash(password);
+    insertUser.run(email, hash);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("UNIQUE")) {
+      return pageFor(
+        currentUser(req),
+        "Sign Up",
+        renderSignupForm({ email }, ["Email already registered."]),
+        { status: 422 },
+      );
+    }
+    throw err;
+  }
+
+  return Response.redirect("/success", 303);
+};
+
+export const login = (req: Request) =>
+  pageFor(currentUser(req), "Log In", renderLoginForm());
 
 export const createLogin = async (req: Request) => {
   const form = await req.formData();
@@ -120,7 +124,8 @@ export const createLogin = async (req: Request) => {
   const password = String(form.get("password") ?? "");
 
   const invalid = () =>
-    page(
+    pageFor(
+      null,
       "Log In",
       renderLoginForm({ email }, ["Email or password is incorrect."]),
       { status: 422 },

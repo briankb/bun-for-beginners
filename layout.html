@@ -1,20 +1,13 @@
 <!-- layout.html -->
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
     <title>{{title}}</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <nav>
-      <a href="/">Home</a> | <a href="/about">About</a> |
-      <a href="/notes/new">New Note</a> |
-      <a href="/signup">Sign Up</a> |
-      <a href="/login">Log In</a> |
-      <form method="POST" action="/logout" style="display: inline">
-        <button type="submit">Log Out</button>
-      </form>
-    </nav>
-    {{body}}
+    {{nav}}
+    <main>{{body}}</main>
   </body>
 </html>
