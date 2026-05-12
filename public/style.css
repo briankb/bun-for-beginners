@@ -48,3 +48,11 @@ button {
 .errors li {
   margin: 0.1rem 0;
 }
+
+.flash {
+  background: #e6f7e6;
+  border: 1px solid #b3d9b3;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  display: inline-block;
+}

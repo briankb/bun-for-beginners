@@ -64,7 +64,7 @@ ${errorList}
 </form>`;
 }
 
-function validateSignup(
+export function validateSignup(
   email: string,
   password: string,
   passwordConfirm: string,

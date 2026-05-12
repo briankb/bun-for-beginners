@@ -1,5 +1,5 @@
 // routes.ts
-import { pageFor, escapeHtml, renderForm } from "./templates";
+import { pageFor, escapeHtml, renderForm, notFound } from "./templates";
 import { db } from "./db";
 import { currentUser } from "./users";
 
@@ -15,11 +15,18 @@ export type Note = {
 const listNotes = db.query(
   "SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC",
 );
+const findNote = db.query("SELECT * FROM notes WHERE id = ? AND user_id = ?");
 const insertNote = db.prepare(
   "INSERT INTO notes (user_id, title, body) VALUES (?, ?, ?)",
 );
+const updateNoteRow = db.prepare(
+  "UPDATE notes SET title = ?, body = ?, updated_at = unixepoch() WHERE id = ? AND user_id = ?",
+);
+const deleteNoteRow = db.prepare(
+  "DELETE FROM notes WHERE id = ? AND user_id = ?",
+);
 
-function validateNote(title: string, body: string): string[] {
+export function validateNote(title: string, body: string): string[] {
   const errors: string[] = [];
   if (title.trim() === "") errors.push("Title is required.");
   if (body.trim() === "") errors.push("Body is required.");
@@ -29,6 +36,7 @@ function validateNote(title: string, body: string): string[] {
 
 export const home = (req: Request) => {
   const user = currentUser(req);
+  const flash = new URL(req.url).searchParams.get("flash");
 
   if (!user) {
     return pageFor(
@@ -46,11 +54,19 @@ export const home = (req: Request) => {
       : `<ul>${notes
           .map(
             (n) =>
-              `<li><strong>${escapeHtml(n.title)}</strong>: ${escapeHtml(n.body)}</li>`,
+              `<li>
+                <strong>${escapeHtml(n.title)}</strong>: ${escapeHtml(n.body)}
+                <a href="/notes/${n.id}/edit">Edit</a>
+                <form method="POST" action="/notes/${n.id}/delete" style="display:inline">
+                  <button type="submit">Delete</button>
+                </form>
+              </li>`,
           )
           .join("")}</ul>`;
 
-  return pageFor(user, "Home", `<h1>Your notes</h1>${list}`);
+  const flashHtml = flash ? `<p class="flash">${escapeHtml(flash)}</p>` : "";
+
+  return pageFor(user, "Home", `<h1>Your notes</h1>${flashHtml}${list}`);
 };
 
 export const about = (req: Request) =>
@@ -84,6 +100,67 @@ export const createNote = async (req: Request) => {
 
   insertNote.run(user.id, title, body);
   return Response.redirect("/", 303);
+};
+
+export const editNote = (req: Request) => {
+  const user = currentUser(req);
+  if (!user) return Response.redirect("/login", 303);
+
+  const id = Number(req.params.id);
+  const note = findNote.get(id, user.id) as Note | null;
+  if (!note) return notFound();
+
+  return pageFor(
+    user,
+    "Edit Note",
+    renderForm({ title: note.title, body: note.body }, [], {
+      action: `/notes/${note.id}/edit`,
+      heading: "Edit Note",
+      submit: "Save Changes",
+    }),
+  );
+};
+
+export const updateNote = async (req: Request) => {
+  const user = currentUser(req);
+  if (!user) return Response.redirect("/login", 303);
+
+  const id = Number(req.params.id);
+  const note = findNote.get(id, user.id) as Note | null;
+  if (!note) return notFound();
+
+  const form = await req.formData();
+  const title = String(form.get("title") ?? "");
+  const body = String(form.get("body") ?? "");
+
+  const errors = validateNote(title, body);
+  if (errors.length > 0) {
+    return pageFor(
+      user,
+      "Edit Note",
+      renderForm({ title, body }, errors, {
+        action: `/notes/${note.id}/edit`,
+        heading: "Edit Note",
+        submit: "Save Changes",
+      }),
+      { status: 422 },
+    );
+  }
+
+  updateNoteRow.run(title, body, note.id, user.id);
+  return Response.redirect("/?flash=Note+saved.", 303);
+};
+
+export const deleteNote = (req: Request) => {
+  const user = currentUser(req);
+  if (!user) return Response.redirect("/login", 303);
+
+  const id = Number(req.params.id);
+  const note = findNote.get(id, user.id) as Note | null;
+  if (!note) return notFound();
+
+  deleteNoteRow.run(note.id, user.id);
+  return Response.redirect("/?flash=Note+deleted.", 303);
 };
 
 export const success = (req: Request) =>

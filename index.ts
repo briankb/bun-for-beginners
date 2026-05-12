@@ -1,5 +1,14 @@
 // index.ts
-import { home, about, newNote, createNote, success } from "./routes";
+import {
+  home,
+  about,
+  newNote,
+  createNote,
+  success,
+  editNote,
+  updateNote,
+  deleteNote,
+} from "./routes";
 import { signup, createUser, login, createLogin, logout } from "./users";
 import { notFound, page } from "./templates";
 
@@ -11,6 +20,13 @@ export const server = Bun.serve({
     "/notes/new": newNote,
     "/notes": {
       POST: createNote,
+    },
+    "/notes/:id/edit": {
+      GET: editNote,
+      POST: updateNote,
+    },
+    "/notes/:id/delete": {
+      POST: deleteNote,
     },
     "/signup": {
       GET: signup,

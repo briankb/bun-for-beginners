@@ -1,7 +1,7 @@
-// index.test.ts
+// server.test.ts
 import { describe, expect, test, beforeEach } from "bun:test";
 import "./index.ts";
-import { db } from "./db";
+import { db } from "./db.ts";
 
 beforeEach(() => {
   db.run("DELETE FROM notes");
@@ -63,7 +63,6 @@ describe("server routes", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/css");
   });
-
 });
 
 describe("notes", () => {
@@ -125,7 +124,6 @@ describe("notes", () => {
     expect(html).not.toContain("<script>alert(1)</script>");
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
   });
-
 });
 
 describe("validation and errors", () => {
@@ -567,5 +565,194 @@ describe("ownership", () => {
     expect(html).toContain('action="/logout"');
     expect(html).not.toContain('href="/signup"');
     expect(html).not.toContain('href="/login"');
+  });
+});
+
+describe("edit and delete", () => {
+  async function createNoteFor(cookie: string, title: string, body: string) {
+    const form = new FormData();
+    form.set("title", title);
+    form.set("body", body);
+    await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      headers: { cookie },
+    });
+    const note = db
+      .query("SELECT id FROM notes WHERE title = ?")
+      .get(title) as { id: number };
+    return note.id;
+  }
+
+  test("GET /notes/:id/edit returns the form pre-filled", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(cookie, "original", "first body");
+
+    const res = await fetch(`http://localhost:3000/notes/${id}/edit`, {
+      headers: { cookie },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Edit Note");
+    expect(html).toContain('value="original"');
+    expect(html).toContain("first body");
+    expect(html).toContain(`action="/notes/${id}/edit"`);
+  });
+
+  test("POST /notes/:id/edit updates the note and redirects with a flash", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(cookie, "before", "before body");
+
+    const form = new FormData();
+    form.set("title", "after");
+    form.set("body", "after body");
+
+    const res = await fetch(`http://localhost:3000/notes/${id}/edit`, {
+      method: "POST",
+      body: form,
+      headers: { cookie },
+      redirect: "manual",
+    });
+
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/?flash=Note+saved.");
+
+    const row = db
+      .query("SELECT title, body FROM notes WHERE id = ?")
+      .get(id) as { title: string; body: string };
+    expect(row.title).toBe("after");
+    expect(row.body).toBe("after body");
+  });
+
+  test("POST /notes/:id/edit with empty title returns the form with an error", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(cookie, "kept", "kept body");
+
+    const form = new FormData();
+    form.set("title", "");
+    form.set("body", "new body");
+
+    const res = await fetch(`http://localhost:3000/notes/${id}/edit`, {
+      method: "POST",
+      body: form,
+      headers: { cookie },
+    });
+    expect(res.status).toBe(422);
+    const html = await res.text();
+    expect(html).toContain("Title is required.");
+
+    const row = db.query("SELECT title FROM notes WHERE id = ?").get(id) as {
+      title: string;
+    };
+    expect(row.title).toBe("kept");
+  });
+
+  test("POST /notes/:id/delete removes the note and redirects with a flash", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(cookie, "doomed", "x");
+
+    const res = await fetch(`http://localhost:3000/notes/${id}/delete`, {
+      method: "POST",
+      headers: { cookie },
+      redirect: "manual",
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/?flash=Note+deleted.");
+
+    const row = db.query("SELECT id FROM notes WHERE id = ?").get(id);
+    expect(row).toBeNull();
+  });
+
+  test("home page shows the flash message from the query string", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const res = await fetch("http://localhost:3000/?flash=Note+saved.", {
+      headers: { cookie },
+    });
+    const html = await res.text();
+    expect(html).toContain('class="flash"');
+    expect(html).toContain("Note saved.");
+  });
+
+  test("flash message is HTML-escaped", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    const res = await fetch(
+      "http://localhost:3000/?flash=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      { headers: { cookie } },
+    );
+    const html = await res.text();
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).toContain("&lt;script&gt;");
+  });
+
+  test("a user cannot edit another user's note", async () => {
+    const aliceCookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(aliceCookie, "alice-only", "secret");
+
+    const bobCookie = await loginAs("bob@example.com", "longenough");
+
+    const getRes = await fetch(`http://localhost:3000/notes/${id}/edit`, {
+      headers: { cookie: bobCookie },
+    });
+    expect(getRes.status).toBe(404);
+
+    const form = new FormData();
+    form.set("title", "hacked");
+    form.set("body", "hacked");
+    const postRes = await fetch(`http://localhost:3000/notes/${id}/edit`, {
+      method: "POST",
+      body: form,
+      headers: { cookie: bobCookie },
+    });
+    expect(postRes.status).toBe(404);
+
+    const row = db.query("SELECT title FROM notes WHERE id = ?").get(id) as {
+      title: string;
+    };
+    expect(row.title).toBe("alice-only");
+  });
+
+  test("a user cannot delete another user's note", async () => {
+    const aliceCookie = await loginAs("alice@example.com", "longenough");
+    const id = await createNoteFor(aliceCookie, "alice-keeps", "x");
+
+    const bobCookie = await loginAs("bob@example.com", "longenough");
+    const res = await fetch(`http://localhost:3000/notes/${id}/delete`, {
+      method: "POST",
+      headers: { cookie: bobCookie },
+    });
+    expect(res.status).toBe(404);
+
+    const row = db.query("SELECT id FROM notes WHERE id = ?").get(id);
+    expect(row).not.toBeNull();
+  });
+
+  test("editing or deleting a missing note returns 404", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+
+    const getRes = await fetch("http://localhost:3000/notes/9999/edit", {
+      headers: { cookie },
+    });
+    expect(getRes.status).toBe(404);
+
+    const deleteRes = await fetch("http://localhost:3000/notes/9999/delete", {
+      method: "POST",
+      headers: { cookie },
+    });
+    expect(deleteRes.status).toBe(404);
+  });
+
+  test("edit and delete redirect to /login when logged out", async () => {
+    const editRes = await fetch("http://localhost:3000/notes/1/edit", {
+      redirect: "manual",
+    });
+    expect(editRes.status).toBe(303);
+    expect(editRes.headers.get("location")).toBe("/login");
+
+    const deleteRes = await fetch("http://localhost:3000/notes/1/delete", {
+      method: "POST",
+      redirect: "manual",
+    });
+    expect(deleteRes.status).toBe(303);
+    expect(deleteRes.headers.get("location")).toBe("/login");
   });
 });
