@@ -1,7 +1,15 @@
 // routes.ts
-import { pageFor, escapeHtml, renderForm, notFound } from "./templates";
+import {
+  pageFor,
+  escapeHtml,
+  renderForm,
+  renderPager,
+  notFound,
+} from "./templates";
 import { db } from "./db";
 import { currentUser } from "./users";
+
+const PAGE_SIZE = 10;
 
 export type Note = {
   id: number;
@@ -13,8 +21,22 @@ export type Note = {
 };
 
 const listNotes = db.query(
-  "SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC",
+  "SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
 );
+const searchNotes = db.query(
+  `SELECT * FROM notes
+   WHERE user_id = ? AND (title LIKE ? OR body LIKE ?)
+   ORDER BY created_at DESC
+   LIMIT ? OFFSET ?`,
+);
+const countNotes = db.query(
+  "SELECT COUNT(*) AS n FROM notes WHERE user_id = ?",
+);
+const countSearchNotes = db.query(
+  `SELECT COUNT(*) AS n FROM notes
+   WHERE user_id = ? AND (title LIKE ? OR body LIKE ?)`,
+);
+
 const findNote = db.query("SELECT * FROM notes WHERE id = ? AND user_id = ?");
 const insertNote = db.prepare(
   "INSERT INTO notes (user_id, title, body) VALUES (?, ?, ?)",
@@ -36,7 +58,10 @@ export function validateNote(title: string, body: string): string[] {
 
 export const home = (req: Request) => {
   const user = currentUser(req);
-  const flash = new URL(req.url).searchParams.get("flash");
+  const url = new URL(req.url);
+  const flash = url.searchParams.get("flash");
+  const q = url.searchParams.get("q") ?? "";
+  const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
 
   if (!user) {
     return pageFor(
@@ -47,10 +72,30 @@ export const home = (req: Request) => {
     );
   }
 
-  const notes = listNotes.all(user.id) as Note[];
+  const offset = (page - 1) * PAGE_SIZE;
+  const searching = q.trim() !== "";
+
+  const notes = (
+    searching
+      ? searchNotes.all(user.id, `%${q}%`, `%${q}%`, PAGE_SIZE, offset)
+      : listNotes.all(user.id, PAGE_SIZE, offset)
+  ) as Note[];
+
+  const total = (
+    searching
+      ? countSearchNotes.get(user.id, `%${q}%`, `%${q}%`)
+      : countNotes.get(user.id)
+  ) as { n: number };
+
+  const pageCount = Math.max(1, Math.ceil(total.n / PAGE_SIZE));
+
+  const emptyMessage = searching
+    ? `<p>No notes match "${escapeHtml(q)}".</p>`
+    : "<p>No notes yet.</p>";
+
   const list =
     notes.length === 0
-      ? "<p>No notes yet.</p>"
+      ? emptyMessage
       : `<ul>${notes
           .map(
             (n) =>
@@ -66,7 +111,18 @@ export const home = (req: Request) => {
 
   const flashHtml = flash ? `<p class="flash">${escapeHtml(flash)}</p>` : "";
 
-  return pageFor(user, "Home", `<h1>Your notes</h1>${flashHtml}${list}`);
+  const searchHtml = `<form method="GET" action="/" class="search">
+    <input type="search" name="q" value="${escapeHtml(q)}" placeholder="Search notes" />
+    <button type="submit">Search</button>
+  </form>`;
+
+  const pager = renderPager(page, pageCount, q);
+
+  return pageFor(
+    user,
+    "Home",
+    `<h1>Your notes</h1>${flashHtml}${searchHtml}${list}${pager}`,
+  );
 };
 
 export const about = (req: Request) =>

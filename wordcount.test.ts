@@ -1,8 +1,4 @@
 // wordcount.test.ts
-import { test, expect } from "bun:test";
-import { countWords } from "./wordcount.ts";
-
-// wordcount.test.ts
 import { describe, test, expect } from "bun:test";
 import { countWords } from "./wordcount.ts";
 

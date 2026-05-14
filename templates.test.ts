@@ -1,6 +1,6 @@
 // templates.test.ts
 import { test, expect } from "bun:test";
-import { escapeHtml, renderForm, renderNav } from "./templates";
+import { escapeHtml, renderForm, renderNav, renderPager } from "./templates";
 
 test("escapeHtml escapes the five HTML special characters", () => {
   expect(escapeHtml("<")).toBe("&lt;");
@@ -53,4 +53,37 @@ test("renderNav shows logged-out links when given null", () => {
   expect(html).toContain('href="/signup"');
   expect(html).toContain('href="/login"');
   expect(html).not.toContain('href="/notes/new"');
+});
+
+test("renderPager returns empty string when there is one page or fewer", () => {
+  expect(renderPager(1, 1, "")).toBe("");
+  expect(renderPager(1, 0, "")).toBe("");
+});
+
+test("renderPager links forward when there is a next page", () => {
+  const html = renderPager(1, 3, "");
+  expect(html).toContain('href="/?page=2"');
+  expect(html).toContain("Page 1 of 3");
+});
+
+test("renderPager links back when there is a previous page", () => {
+  const html = renderPager(2, 3, "");
+  expect(html).toContain('href="/"');
+  expect(html).toContain('href="/?page=3"');
+});
+
+test("renderPager disables prev on the first page and next on the last", () => {
+  const first = renderPager(1, 3, "");
+  expect(first).toContain('class="prev disabled"');
+  expect(first).not.toContain('class="next disabled"');
+
+  const last = renderPager(3, 3, "");
+  expect(last).toContain('class="next disabled"');
+  expect(last).not.toContain('class="prev disabled"');
+});
+
+test("renderPager carries the search query in pager links", () => {
+  const html = renderPager(1, 3, "groceries");
+  expect(html).toContain("q=groceries");
+  expect(html).toContain("page=2");
 });

@@ -6,7 +6,6 @@
 ├── db.ts
 ├── form.html
 ├── home.html
-├── index.test.ts
 ├── index.ts
 ├── layout.html
 ├── package.json
@@ -14,53 +13,61 @@
 │   └── style.css
 ├── README.md
 ├── routes.ts
+├── routes.test.ts
+├── seed.ts
+├── server.test.ts
 ├── sessions.ts
 ├── templates.ts
+├── templates.test.ts
 ├── tree-view-end-of-chapter-08.txt
 ├── tsconfig.json
 ├── users.ts
-├── wordcount.test.ts
-└── wordcount.ts
+├── users.test.ts
+├── wordcount.ts
+└── wordcount.test.ts
 ```
 
 *Not shown: `node_modules/`, `bun.lock`, `notes.db`, `notes.test.db`, and SQLite `-wal`/`-shm` sidecars (all gitignored).*
 
-*Other files on disk worth noting: `wordcount.ts` and `wordcount.test.ts` (from Chapters 3–4, no longer used by the server).*
-
-*`form.html` is still on disk — Chapter 8 deleted it from the narrative; if the reader's commit didn't pick it up, it's harmless but stale.*
+*Stale files still on disk: `wordcount.ts` / `wordcount.test.ts` (from Chapters 3–4, not used by the server); `form.html` and `home.html` (early-chapter scaffolding, no longer referenced — `home.html` was replaced by inline HTML in `routes.ts`, and the new-note form is now rendered by `renderForm` in `templates.ts`).*
 
 ## Module exports
 
 ### `db.ts`
 
 - `db: Database` — SQLite database opened at `process.env.DB_PATH ?? "notes.db"` with `create: true`.
-- Private: three top-level `db.run(...)` calls execute `CREATE TABLE IF NOT EXISTS notes (...)`, `CREATE TABLE IF NOT EXISTS users (...)`, and `CREATE TABLE IF NOT EXISTS sessions (...)` at module load.
+- Private: three top-level `db.run(...)` calls execute `CREATE TABLE IF NOT EXISTS notes (...)` (now with a `user_id` column), `CREATE TABLE IF NOT EXISTS users (...)`, and `CREATE TABLE IF NOT EXISTS sessions (...)` at module load.
 
 ### `index.ts`
 
-- `server: Server` — `Bun.serve` instance on port 3000 wiring `/`, `/about`, `/notes/new`, `POST /notes`, `/signup` (GET + POST), `/login` (GET + POST), `POST /logout`, `/success`, `/ok`, a `/*` static-file fallback into `./public`, a `fetch` 404 fallback, and an `error` handler that renders a 500 page.
+- `server: Server` — `Bun.serve` instance on port 3000 wiring `/`, `/about`, `/notes/new`, `POST /notes`, `GET|POST /notes/:id/edit`, `POST /notes/:id/delete`, `/signup` (GET + POST), `/login` (GET + POST), `POST /logout`, `/success`, `/ok`, a `/*` static-file fallback into `./public`, a `fetch` 404 fallback, and an `error` handler that renders a 500 page via `page(...)`.
 - Private: `import.meta.main` guard that logs the server URL when the module is the entrypoint.
 
 ### `routes.ts`
 
-- `type Note` — DB row shape (`id`, `title`, `body`, `created_at`, `updated_at`).
-- `home()` — Selects all notes ordered by `created_at DESC` and renders them as an escaped `<ul>` (or "No notes yet.") inside the page layout.
-- `about()` — Returns the static About page.
-- `newNote()` — Returns the page wrapping `renderForm()` with empty values.
-- `createNote(req: Request): Promise<Response>` — Parses the form body, calls `validateNote`, re-renders the form with errors at status 422 if invalid, otherwise inserts the note and returns a 303 redirect to `/`.
-- `success()` — Returns the "Account created" confirmation page with a link home.
-- Private: `listNotes`, `insertNote` — prepared statements held at module scope; `validateNote(title, body)` — returns an array of error strings for empty title/body and title length > 200.
+- `type Note` — DB row shape (`id`, `user_id`, `title`, `body`, `created_at`, `updated_at`).
+- `validateNote(title, body)` — returns an array of error strings for empty title/body and title length > 200. Now exported (consumed by `routes.test.ts`).
+- `home(req)` — Reads `currentUser(req)`. If logged out, renders a welcome page with sign-up / log-in links. If logged in, reads `q` and `page` from the query string, runs the search (`title LIKE ? OR body LIKE ?`) or plain-list query scoped to `user.id`, paginates with `LIMIT 10 OFFSET (page-1)*10`, renders each `<li>` with an Edit link (`/notes/:id/edit`) and an inline `POST /notes/:id/delete` button, and prepends a `<form class="search">` input plus a `<p class="flash">` banner when `?flash=...` is present (escaped). Falls back to `page = 1` for `?page=0`, negative, or non-numeric values. The empty-state message names the search term (escaped) when one was provided. The pager is appended via `renderPager(page, pageCount, q)`.
+- `about(req)` — Returns the static About page, with nav rendered for the current user.
+- `newNote(req)` — Redirects to `/login` (303) when logged out; otherwise returns the page wrapping `renderForm()` with empty values.
+- `createNote(req): Promise<Response>` — Redirects to `/login` (303) when logged out. Parses the form body, calls `validateNote`, re-renders the form with errors at status 422 if invalid, otherwise inserts the note **stamped with `user.id`** and returns a 303 redirect to `/`.
+- `editNote(req)` — Redirects to `/login` (303) when logged out. Looks up the note by `id` **and** `user_id` (so another user's note returns 404). Renders `renderForm` with the existing values and the `{ action: "/notes/:id/edit", heading: "Edit Note", submit: "Save Changes" }` options.
+- `updateNote(req): Promise<Response>` — Same auth + ownership guard. Validates; on errors re-renders the edit form at 422 with the submitted values. On success runs `UPDATE notes SET title = ?, body = ?, updated_at = unixepoch() WHERE id = ? AND user_id = ?` and redirects to `/?flash=Note+saved.` (303).
+- `deleteNote(req)` — Same auth + ownership guard. Deletes the row scoped by `user_id` and redirects to `/?flash=Note+deleted.` (303).
+- `success(req)` — Returns the "Account created" confirmation page with a link to `/login`.
+- Private: `PAGE_SIZE = 10`; `listNotes` (now takes `user_id, limit, offset`), `searchNotes` (adds `title LIKE ? OR body LIKE ?`), `countNotes`, `countSearchNotes`, `findNote`, `insertNote`, `updateNoteRow`, `deleteNoteRow` — prepared statements held at module scope. All note queries that touch a specific row include `user_id = ?` to enforce ownership at the SQL layer; the search and count queries pass `%${q}%` for the LIKE pattern.
 
 ### `users.ts`
 
 - `type User` — DB row shape (`id`, `email`, `password_hash`, `created_at`, `updated_at`).
-- `signup()` — Returns the page wrapping the sign-up form with empty values and no errors.
-- `createUser(req: Request): Promise<Response>` — Parses the form body, calls `validateSignup`, re-renders the form with errors at status 422 if invalid; otherwise hashes the password with `Bun.password.hash` (argon2id default), inserts the user, catches `UNIQUE` constraint errors to render an "Email already registered." 422, and returns a 303 redirect to `/success` on success. Non-UNIQUE errors are re-thrown to the server's `error` handler.
-- `login()` — Returns the page wrapping the login form with empty values and no errors.
-- `createLogin(req: Request): Promise<Response>` — Parses the form body, returns a single "Email or password is incorrect." 422 for empty fields, unknown email, or wrong password (no leak about which case it was). On success, calls `createSession(user.id)` and sets a `session_id` cookie via `req.cookies.set(...)` with `httpOnly`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session lifetime, then returns a 303 redirect to `/`.
-- `currentUser(req: Request): User | null` — Reads `session_id` from `req.cookies`, looks up the session via `findSessionById` (which already filters on `expires_at > unixepoch()`), then looks up the user. Returns `null` if cookie/session/user is missing or expired. Not yet wired into any handler — Chapter 11 will use it.
-- `logout(req: Request): Response` — Reads `session_id` from `req.cookies`, calls `endSession` and `req.cookies.delete("session_id")` if present, and returns a 303 redirect to `/`. No-ops gracefully when no cookie is present.
-- Private: `insertUser`, `findUserByEmail`, `findUserById` — prepared statements held at module scope; `validateSignup(email, password, passwordConfirm)` — returns an array of error strings for empty email, missing `@`, password shorter than 8 chars, and mismatched confirmation; `renderSignupForm(values?, errors?)` — renders the sign-up `<form>` with escaped email round-trip (password fields never round-trip) and an optional `<ul class="errors">` list; `renderLoginForm(values?, errors?)` — same shape as `renderSignupForm` but with only an email field plus password (no confirm).
+- `validateSignup(email, password, passwordConfirm)` — returns an array of error strings for empty email, missing `@`, password shorter than 8 chars, and mismatched confirmation. Now exported (consumed by `users.test.ts`).
+- `signup(req)` — Returns the page wrapping the sign-up form with empty values and no errors. Nav reflects `currentUser(req)`.
+- `createUser(req): Promise<Response>` — Parses the form body, calls `validateSignup`, re-renders the form with errors at status 422 if invalid; otherwise hashes the password with `Bun.password.hash` (argon2id default), inserts the user, catches `UNIQUE` constraint errors to render an "Email already registered." 422, and returns a 303 redirect to `/success` on success. Non-UNIQUE errors are re-thrown to the server's `error` handler.
+- `login(req)` — Returns the page wrapping the login form with empty values and no errors.
+- `createLogin(req): Promise<Response>` — Parses the form body, returns a single "Email or password is incorrect." 422 for empty fields, unknown email, or wrong password (no leak about which case it was). On success, calls `createSession(user.id)` and sets a `session_id` cookie via `req.cookies.set(...)` with `httpOnly`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session lifetime, then returns a 303 redirect to `/`.
+- `currentUser(req): User | null` — Reads `session_id` from `req.cookies`, looks up the session via `findSessionById` (which already filters on `expires_at > unixepoch()`), then looks up the user. Returns `null` if cookie/session/user is missing or expired. Now used by every handler in `routes.ts` and by `signup`/`login`/`about` to drive nav state.
+- `logout(req): Response` — Reads `session_id` from `req.cookies`, calls `endSession` and `req.cookies.delete("session_id")` if present, and returns a 303 redirect to `/`. No-ops gracefully when no cookie is present.
+- Private: `insertUser`, `findUserByEmail`, `findUserById` — prepared statements held at module scope; `renderSignupForm(values?, errors?)` — renders the sign-up `<form>` with escaped email round-trip (password fields never round-trip) and an optional `<ul class="errors">` list; `renderLoginForm(values?, errors?)` — same shape as `renderSignupForm` but with only an email field plus password (no confirm).
 
 ### `sessions.ts`
 
@@ -72,17 +79,20 @@
 
 ### `templates.ts`
 
-- `page(title: string, body: string, init?: ResponseInit): Response` — Replaces `{{title}}` and `{{body}}` in the layout HTML and returns an HTML Response with `Content-Type: text/html; charset=utf-8`, merging any caller-supplied `init`.
+- `page(title, body, init?): Response` — Replaces `{{title}}` and `{{body}}` in the layout HTML and returns an HTML Response with `Content-Type: text/html; charset=utf-8`, merging any caller-supplied `init`. Does **not** replace `{{nav}}` — use `pageFor` for any page that should render nav. (Currently only the 500 error page in `index.ts` uses `page` directly.)
+- `pageFor(user: User | null, title, body, init?): Response` — Same as `page` but also replaces `{{nav}}` with `renderNav(user)`. Every user-facing handler goes through this so nav reflects auth state.
+- `renderNav(user: User | null): string` — Returns the logged-in nav (Home / About / New Note / inline `POST /logout` button) when given a user, and the logged-out nav (Home / About / Sign Up / Log In) when given `null`.
 - `escapeHtml(s: string): string` — Replaces `& < > " '` with their HTML entity references.
-- `renderForm(values?: { title: string; body: string }, errors?: string[]): string` — Returns the new-note `<form>` HTML, escaping prefilled values and prefixing an `<ul class="errors">` list when errors are present.
-- `notFound(): Response` — Returns the styled 404 page via `page(...)` with status 404.
-- Private: top-level `await Bun.file("./layout.html").text()` reads the layout template once at module load.
+- `renderForm(values?, errors?, options?): string` — Returns a `<form>` HTML block. `options` defaults to `{ action: "/notes", heading: "New Note", submit: "Save Note" }`; the edit handlers pass `{ action: "/notes/:id/edit", heading: "Edit Note", submit: "Save Changes" }`. Escapes prefilled values and prefixes a `<ul class="errors">` list when errors are present.
+- `notFound(): Response` — Returns the styled 404 page via `pageFor(null, ...)` with status 404.
+- Private: top-level `await Bun.file("./layout.html").text()` reads the layout template once at module load; `NEW_NOTE_FORM` constant holds the default `FormOptions`.
 
 ## Database schema
 
 ```sql
 CREATE TABLE IF NOT EXISTS notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
@@ -106,83 +116,83 @@ CREATE TABLE IF NOT EXISTS sessions (
   )
 ```
 
+`notes.user_id` is required on every insert and threaded through every read/update/delete — there is no path that touches a note without scoping by the current user. There is **no** `FOREIGN KEY` declared on `notes.user_id` (only `sessions.user_id` has one); if the user row is removed there is nothing on the schema preventing orphaned notes.
+
 `users.email` has a `UNIQUE` constraint — duplicate inserts throw a SQLite error containing `UNIQUE`, which `createUser` catches and turns into a 422 form error. `password_hash` stores the full self-describing `$argon2id$...` string from `Bun.password.hash` (algorithm, parameters, salt, hash). Passwords are never stored in plaintext and never round-trip into form values.
 
 `sessions.id` is a `TEXT PRIMARY KEY` populated by `randomUUIDv7()` so the ID is unguessable — the cookie ships the ID directly and a sequential integer would be hijackable. There is no `updated_at` (a session is created and eventually deleted, never edited). `expires_at` is a Unix timestamp; `findSessionById` filters on `expires_at > unixepoch()`, so an expired session is treated the same as a missing one.
 
 ## Routes
 
-| Method | Path | Handler | Response |
-| --- | --- | --- | --- |
-| GET | `/` | `home` | HTML |
-| GET | `/about` | `about` | HTML |
-| GET | `/notes/new` | `newNote` | HTML (form) |
-| POST | `/notes` | `createNote` | 303 → `/` on success, 422 HTML (form with errors) on invalid |
-| GET | `/signup` | `signup` | HTML (form) |
-| POST | `/signup` | `createUser` | 303 → `/success` on success, 422 HTML (form with errors) on invalid or duplicate email |
-| GET | `/login` | `login` | HTML (form) |
-| POST | `/login` | `createLogin` | 303 → `/` with `Set-Cookie: session_id=...` on success, 422 HTML ("Email or password is incorrect.") on any failure |
-| POST | `/logout` | `logout` | 303 → `/` and clears `session_id` cookie (no-op if no cookie was set) |
-| GET | `/success` | `success` | HTML (account-created confirmation) |
-| GET | `/ok` | static `Response` | `"OK"` |
-| any | `/*` | (inline) | static file from `./public` or `notFound()` (404 page) |
-| — | (fallback) | (inline) | 404 page |
+| Method | Path | Handler | Auth | Response |
+| --- | --- | --- | --- | --- |
+| GET | `/` | `home` | optional | HTML — welcome page if logged out, the user's notes (with Edit/Delete + flash banner) if logged in |
+| GET | `/about` | `about` | optional | HTML |
+| GET | `/notes/new` | `newNote` | required | HTML (form), else 303 → `/login` |
+| POST | `/notes` | `createNote` | required | 303 → `/` on success (note stamped with `user_id`), 422 HTML on invalid, else 303 → `/login` |
+| GET | `/notes/:id/edit` | `editNote` | required | HTML (form pre-filled), 404 if the note doesn't exist **or belongs to another user**, else 303 → `/login` |
+| POST | `/notes/:id/edit` | `updateNote` | required | 303 → `/?flash=Note+saved.` on success, 422 HTML on invalid, 404 if not the owner, else 303 → `/login` |
+| POST | `/notes/:id/delete` | `deleteNote` | required | 303 → `/?flash=Note+deleted.` on success, 404 if not the owner, else 303 → `/login` |
+| GET | `/signup` | `signup` | optional | HTML (form) |
+| POST | `/signup` | `createUser` | optional | 303 → `/success` on success, 422 HTML on invalid or duplicate email |
+| GET | `/login` | `login` | optional | HTML (form) |
+| POST | `/login` | `createLogin` | optional | 303 → `/` with `Set-Cookie: session_id=...` on success, 422 HTML ("Email or password is incorrect.") on any failure |
+| POST | `/logout` | `logout` | optional | 303 → `/` and clears `session_id` cookie (no-op if no cookie was set) |
+| GET | `/success` | `success` | optional | HTML (account-created confirmation, links to `/login`) |
+| GET | `/ok` | static `Response` | — | `"OK"` |
+| any | `/*` | (inline) | — | static file from `./public` or `notFound()` (404 page) |
+| — | (fallback) | (inline) | — | 404 page |
 
-Nav links in `layout.html`: Home, About, New Note, Sign Up, Log In, and an inline `POST /logout` button. Every link is always visible regardless of auth state — Chapter 11 will hide what does not apply.
+**Nav:** rendered by `renderNav(user)` and injected into the layout via the `{{nav}}` slot. Logged in: Home / About / New Note / `POST /logout` button. Logged out: Home / About / Sign Up / Log In.
 
-The session cookie is set with `httpOnly: true`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session's `expires_at`. `req.cookies` is a `Bun.CookieMap`; any `set`/`delete` against it is applied to the response automatically by `Bun.serve`. (Note: `bun-types` does not currently type `Request.cookies` even though it works at runtime — TS reports "Property 'cookies' does not exist on type 'Request'" on the four call sites in `users.ts`; behavior is unaffected.)
+**Flash messages:** `updateNote` and `deleteNote` redirect to `/?flash=...`. `home` reads the `flash` query param and renders it inside `<p class="flash">` with `escapeHtml` so user-supplied values can't inject markup. There is no server-side flash store — the message lives only in the redirect URL.
+
+**Ownership invariant:** every note SQL touches `user_id`. Reading another user's note returns 404 (not 403) so the existence of the row is not leaked.
+
+The session cookie is set with `httpOnly: true`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session's `expires_at`. `req.cookies` is a `Bun.CookieMap`; any `set`/`delete` against it is applied to the response automatically by `Bun.serve`. (Note: `bun-types` does not currently type `Request.cookies` or `Request.params`, even though they work at runtime — `tsc --noEmit` reports "Property 'cookies' does not exist on type 'Request'" on four call sites in `users.ts` and "Property 'params' does not exist on type 'Request'" on the three `req.params.id` sites in `routes.ts`. Behavior is unaffected.)
 
 ## Tests
 
-**File:** `index.test.ts`. Imports `./index.ts` for side-effect server start, `db` from `./db` for table reset between tests. Top-level `beforeEach` runs `DELETE FROM notes`, `DELETE FROM users`, and `DELETE FROM sessions`.
+Tests are split across five files (one per module), reset between every test via a top-level `beforeEach` in `server.test.ts`.
 
-### `describe("server routes")`
-- home page returns 200 with welcome text
-- about page returns 200
-- health check returns OK
-- stylesheet is served from public folder
-- unknown URL returns 404
+### `server.test.ts` — integration tests (HTTP via `fetch`)
 
-### `describe("notes")`
-- GET /notes/new returns the form
-- POST /notes redirects to home
-- submitted notes appear on the home page
-- user input is escaped on the home page
-- multiple notes appear in order
+Imports `./index.ts` for side-effect server start and `db` from `./db.ts` for table resets (`DELETE FROM notes`, `DELETE FROM users`, `DELETE FROM sessions`).
 
-### `describe("validation and errors")`
-- empty title returns the form with an error
-- empty body returns the form with an error
-- invalid form preserves the user's input
-- invalid form does not write to the database
-- missing route returns the styled 404 page
+Local helpers: `signUp(email, password)` POSTs to `/signup`; `loginAs(email, password)` signs up + logs in and returns a `session_id=...` cookie string ready to drop into a `cookie` header; `sessionCookie(res)` extracts the `session_id` value out of a `Set-Cookie` header via regex.
 
-### `describe("sign up")`
-- GET /signup returns the form
-- valid sign up creates a user and redirects to /success (asserts row exists, hash is not plaintext, hash contains `$argon2id$`)
-- stored hash verifies against the original password (asserts `Bun.password.verify` returns true for the right password and false for the wrong one)
-- short password returns the form with an error (asserts email round-trips, password does **not** appear in the response)
-- mismatched passwords return an error
-- duplicate email returns a friendly error (asserts only one row exists after the second attempt)
+- `describe("server routes")` — 3 tests: about page returns 200, `/ok` returns `"OK"`, public stylesheet has `text/css` content type.
+- `describe("notes")` — 4 tests: GET `/notes/new` returns the form (requires login), POST `/notes` redirects, submitted notes appear on home, user input is escaped.
+- `describe("validation and errors")` — 5 tests: empty title / empty body / preserved input / no DB write on invalid / styled 404 for unknown routes.
+- `describe("sign up")` — 5 tests: GET form, successful sign up stores an argon2id hash, hash verifies with `Bun.password.verify`, short password keeps the email but drops the password from the response, mismatched passwords, duplicate email returns a friendly error with only one row in the DB.
+- `describe("login and logout")` — 6 tests: GET form, valid login sets the cookie and writes a `sessions` row, wrong password returns the same error as unknown email (privacy property pinned), logout clears the cookie + row, logout without a session no-ops.
+- `describe("ownership")` — 8 tests: welcome message when logged out, user's notes when logged in, one user does not see another's notes, `/notes/new` and POST `/notes` redirect to `/login` when logged out, created notes are stamped with the current `user.id`, nav switches based on auth state (both directions).
+- `describe("edit and delete")` — 10 tests: edit form pre-fills, POST edit updates + redirects with `?flash=Note+saved.`, empty title returns 422 + keeps the original row, delete removes + redirects with `?flash=Note+deleted.`, home renders the flash, flash value is HTML-escaped (XSS pinned), a user cannot edit or delete another user's note (404, row unchanged), edit/delete on a missing id returns 404, edit/delete redirect to `/login` when logged out.
 
-### `describe("login and logout")`
-- GET /login returns the form
-- valid login sets a session cookie and redirects home (asserts 303 to `/`, a non-trivial `session_id` cookie value, and a matching row in `sessions`)
-- wrong password returns the form with an error (asserts 422, error message, email round-trips, submitted password does **not** appear, and no session row was created)
-- unknown email returns the same error as wrong password (pins the privacy property — error must not say "not registered")
-- logout deletes the session row and clears the cookie (asserts 303, that `Set-Cookie` clears `session_id` via `max-age=0` or expiry, and the row is gone)
-- logout without a session redirects home and does nothing (asserts 303 to `/` with no cookie set)
+### `routes.test.ts` — unit tests for `validateNote`
 
-Local helpers inside the block: `signUp(email, password)` — POSTs to `/signup` to create the user under test; `sessionCookie(res)` — extracts the `session_id` value out of a `Set-Cookie` header via regex.
+6 tests: accepts a normal note, rejects empty title / whitespace title / empty body / title over 200 chars, returns multiple errors at once.
 
-**File:** `wordcount.test.ts`. Imports `countWords` from `./wordcount.ts` (the file duplicates the `bun:test` and `countWords` imports at the top).
+### `users.test.ts` — unit tests for `validateSignup`
 
-### `describe("countWords")`
-- counts two words
-- returns zero for an empty string
-- counts a single word
-- handles multiple spaces between words
-- ignores leading and trailing whitespace
-- handles tabs and newlines
+5 tests: accepts valid input, rejects empty email, missing `@`, password under 8 chars, mismatched confirmation.
 
-Test totals: **33 tests across 2 files**, all passing on the latest run.
+### `templates.test.ts` — unit tests for templating
+
+7 tests: `escapeHtml` covers all five HTML special chars and leaves safe text alone; `renderForm` defaults to empty fields with no error list, round-trips user input safely (including escaping `&amp;` → `&amp;amp;`), and shows the error list when given errors; `renderNav` renders the logged-in nav for a `User` and the logged-out nav for `null`.
+
+### `wordcount.test.ts` — leftover from Chapter 4
+
+6 tests for `countWords`. Not wired into the server.
+
+**Test totals:** 66 tests across 5 files. Last run requires port 3000 to be free (`server.test.ts` boots `Bun.serve` on a fixed port via `import "./index.ts"`); a stray `bun --watch` process will cause an `EADDRINUSE` error in that file.
+
+## Known type errors (TS only — runtime is fine)
+
+`bunx tsc --noEmit` currently surfaces:
+
+- `routes.ts` 3× `Property 'params' does not exist on type 'Request'` — `req.params.id` in `editNote` / `updateNote` / `deleteNote`. `bun-types` gap.
+- `users.ts` 4× `Property 'cookies' does not exist on type 'Request'` — same `bun-types` gap.
+- `server.test.ts` 1× `Type 'string | undefined' is not assignable to type 'string | null'` — the `sessionCookie` regex-match return.
+
+None of these block `bun test` or `bun run`.

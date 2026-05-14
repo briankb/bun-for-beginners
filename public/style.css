@@ -56,3 +56,27 @@ button {
   border-radius: 4px;
   display: inline-block;
 }
+
+.search {
+  margin: 1rem 0;
+}
+
+.search input[type="search"] {
+  padding: 0.4rem;
+}
+
+.pager {
+  margin: 1.5rem 0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pager .disabled {
+  color: #aaa;
+}
+
+.pager .page-info {
+  color: #555;
+  font-size: 0.9rem;
+}

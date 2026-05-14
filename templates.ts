@@ -39,41 +39,6 @@ ${errorList}
 </form>`;
 }
 
-export const home = (req: Request) => {
-  const user = currentUser(req);
-  const flash = new URL(req.url).searchParams.get("flash");
-
-  if (!user) {
-    return pageFor(
-      null,
-      "Home",
-      `<h1>Welcome</h1>
-      <p>This is a notes app. <a href="/signup">Sign up</a> or <a href="/login">log in</a> to start.</p>`,
-    );
-  }
-
-  const notes = listNotes.all(user.id) as Note[];
-  const list =
-    notes.length === 0
-      ? "<p>No notes yet.</p>"
-      : `<ul>${notes
-          .map(
-            (n) =>
-              `<li>
-                <strong>${escapeHtml(n.title)}</strong>: ${escapeHtml(n.body)}
-                <a href="/notes/${n.id}/edit">Edit</a>
-                <form method="POST" action="/notes/${n.id}/delete" style="display:inline">
-                  <button type="submit">Delete</button>
-                </form>
-              </li>`,
-          )
-          .join("")}</ul>`;
-
-  const flashHtml = flash ? `<p class="flash">${escapeHtml(flash)}</p>` : "";
-
-  return pageFor(user, "Home", `<h1>Your notes</h1>${flashHtml}${list}`);
-};
-
 export function page(
   title: string,
   body: string,
@@ -142,4 +107,36 @@ export function notFound(): Response {
     <p>That page does not exist. <a href="/">Go home</a>.</p>`,
     { status: 404 },
   );
+}
+
+export function renderPager(
+  page: number,
+  pageCount: number,
+  q: string,
+): string {
+  if (pageCount <= 1) return "";
+
+  const params = (n: number) => {
+    const search = new URLSearchParams();
+    if (q !== "") search.set("q", q);
+    if (n !== 1) search.set("page", String(n));
+    const s = search.toString();
+    return s === "" ? "/" : `/?${s}`;
+  };
+
+  const prev =
+    page > 1
+      ? `<a href="${escapeHtml(params(page - 1))}" class="prev">Prev</a>`
+      : `<span class="prev disabled">Prev</span>`;
+
+  const next =
+    page < pageCount
+      ? `<a href="${escapeHtml(params(page + 1))}" class="next">Next</a>`
+      : `<span class="next disabled">Next</span>`;
+
+  return `<nav class="pager">
+    ${prev}
+    <span class="page-info">Page ${page} of ${pageCount}</span>
+    ${next}
+  </nav>`;
 }

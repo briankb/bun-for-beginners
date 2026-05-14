@@ -756,3 +756,165 @@ describe("edit and delete", () => {
     expect(deleteRes.headers.get("location")).toBe("/login");
   });
 });
+
+describe("search and pagination", () => {
+  async function createNoteFor(cookie: string, title: string, body: string) {
+    const form = new FormData();
+    form.set("title", title);
+    form.set("body", body);
+    await fetch("http://localhost:3000/notes", {
+      method: "POST",
+      body: form,
+      headers: { cookie },
+    });
+  }
+
+  test("search filters notes by a substring in the title", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    await createNoteFor(cookie, "groceries", "milk eggs");
+    await createNoteFor(cookie, "ideas", "rocket boots");
+    await createNoteFor(cookie, "more groceries", "bread");
+
+    const res = await fetch("http://localhost:3000/?q=groc", {
+      headers: { cookie },
+    });
+    const html = await res.text();
+    expect(html).toContain("groceries");
+    expect(html).toContain("more groceries");
+    expect(html).not.toContain("ideas");
+  });
+
+  test("search filters notes by a substring in the body", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    await createNoteFor(cookie, "first", "rocket boots");
+    await createNoteFor(cookie, "second", "ordinary boots");
+    await createNoteFor(cookie, "third", "no footwear");
+
+    const res = await fetch("http://localhost:3000/?q=boots", {
+      headers: { cookie },
+    });
+    const html = await res.text();
+    expect(html).toContain("first");
+    expect(html).toContain("second");
+    expect(html).not.toContain("third");
+  });
+
+  test("search with no matches renders a friendly empty message", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    await createNoteFor(cookie, "real note", "real body");
+
+    const res = await fetch("http://localhost:3000/?q=nothing", {
+      headers: { cookie },
+    });
+    const html = await res.text();
+    expect(html).toContain("No notes match");
+    expect(html).toContain("nothing");
+    expect(html).not.toContain("real note");
+  });
+
+  test("search query is HTML-escaped in the input and the empty message", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+
+    const res = await fetch(
+      "http://localhost:3000/?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      { headers: { cookie } },
+    );
+    const html = await res.text();
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).toContain("&lt;script&gt;");
+  });
+
+  test("only the current user's notes appear in search results", async () => {
+    const aliceCookie = await loginAs("alice@example.com", "longenough");
+    await createNoteFor(aliceCookie, "alice-secret", "private");
+
+    const bobCookie = await loginAs("bob@example.com", "longenough");
+    await createNoteFor(bobCookie, "bob-note", "secret");
+
+    const res = await fetch("http://localhost:3000/?q=secret", {
+      headers: { cookie: bobCookie },
+    });
+    const html = await res.text();
+    expect(html).toContain("bob-note");
+    expect(html).not.toContain("alice-secret");
+  });
+
+  test("the page caps the list at ten notes", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    for (let i = 1; i <= 12; i++) {
+      await createNoteFor(cookie, `note-${i}`, "x");
+    }
+
+    const res = await fetch("http://localhost:3000/", { headers: { cookie } });
+    const html = await res.text();
+    const matches = html.match(/<li>/g) ?? [];
+    expect(matches.length).toBe(10);
+    expect(html).toContain("Page 1 of 2");
+  });
+
+  test("page=2 shows the next ten notes", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    for (let i = 1; i <= 12; i++) {
+      await createNoteFor(cookie, `note-${i}`, "x");
+    }
+
+    const res = await fetch("http://localhost:3000/?page=2", {
+      headers: { cookie },
+    });
+    const html = await res.text();
+    expect(html).toContain("note-1");
+    expect(html).toContain("note-2");
+    expect(html).not.toContain("note-12");
+    expect(html).toContain("Page 2 of 2");
+  });
+
+  test("the pager does not render when everything fits on one page", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    await createNoteFor(cookie, "only one", "x");
+
+    const res = await fetch("http://localhost:3000/", { headers: { cookie } });
+    const html = await res.text();
+    expect(html).not.toContain("Page 1 of");
+    expect(html).not.toContain('class="pager"');
+  });
+
+  test("search and pagination work together", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    for (let i = 1; i <= 12; i++) {
+      await createNoteFor(cookie, `match-${i}`, "x");
+    }
+    await createNoteFor(cookie, "no-match", "y");
+
+    const page1 = await fetch("http://localhost:3000/?q=match", {
+      headers: { cookie },
+    });
+    const html1 = await page1.text();
+    expect(html1).toContain("Page 1 of 2");
+    expect(html1).toContain('href="/?q=match&amp;page=2"');
+    expect(html1).not.toContain("no-match");
+
+    const page2 = await fetch("http://localhost:3000/?q=match&page=2", {
+      headers: { cookie },
+    });
+    const html2 = await page2.text();
+    expect(html2).toContain("Page 2 of 2");
+    expect(html2).toContain("match-1");
+  });
+
+  test("?page=0 and a garbage page value both fall back to page 1", async () => {
+    const cookie = await loginAs("alice@example.com", "longenough");
+    for (let i = 1; i <= 12; i++) {
+      await createNoteFor(cookie, `note-${i}`, "x");
+    }
+
+    const zero = await fetch("http://localhost:3000/?page=0", {
+      headers: { cookie },
+    });
+    expect(await zero.text()).toContain("Page 1 of 2");
+
+    const junk = await fetch("http://localhost:3000/?page=banana", {
+      headers: { cookie },
+    });
+    expect(await junk.text()).toContain("Page 1 of 2");
+  });
+});
