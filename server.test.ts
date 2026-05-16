@@ -883,7 +883,7 @@ describe("search and pagination", () => {
     for (let i = 1; i <= 12; i++) {
       await createNoteFor(cookie, `match-${i}`, "x");
     }
-    await createNoteFor(cookie, "no-match", "y");
+    await createNoteFor(cookie, "other", "y");
 
     const page1 = await fetch("http://localhost:3000/?q=match", {
       headers: { cookie },
@@ -891,7 +891,7 @@ describe("search and pagination", () => {
     const html1 = await page1.text();
     expect(html1).toContain("Page 1 of 2");
     expect(html1).toContain('href="/?q=match&amp;page=2"');
-    expect(html1).not.toContain("no-match");
+    expect(html1).not.toContain("other");
 
     const page2 = await fetch("http://localhost:3000/?q=match&page=2", {
       headers: { cookie },

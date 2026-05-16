@@ -13,7 +13,7 @@ import { signup, createUser, login, createLogin, logout } from "./users";
 import { notFound, page } from "./templates";
 
 export const server = Bun.serve({
-  port: 3000,
+  port: Number(process.env.PORT) || 3000,
   routes: {
     "/": home,
     "/about": about,

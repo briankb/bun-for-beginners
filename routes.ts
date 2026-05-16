@@ -21,12 +21,12 @@ export type Note = {
 };
 
 const listNotes = db.query(
-  "SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+  "SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
 );
 const searchNotes = db.query(
   `SELECT * FROM notes
    WHERE user_id = ? AND (title LIKE ? OR body LIKE ?)
-   ORDER BY created_at DESC
+   ORDER BY created_at DESC, id DESC
    LIMIT ? OFFSET ?`,
 );
 const countNotes = db.query(

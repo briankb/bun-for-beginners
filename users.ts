@@ -11,6 +11,8 @@ export type User = {
   updated_at: number;
 };
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const insertUser = db.prepare(
   "INSERT INTO users (email, password_hash) VALUES (?, ?)",
 );
@@ -143,6 +145,7 @@ export const createLogin = async (req: Request) => {
   req.cookies.set("session_id", session.id, {
     httpOnly: true,
     sameSite: "lax",
+    secure: isProduction,
     path: "/",
     maxAge: session.expires_at - Math.floor(Date.now() / 1000),
   });

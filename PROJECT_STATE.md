@@ -55,7 +55,7 @@
 - `updateNote(req): Promise<Response>` — Same auth + ownership guard. Validates; on errors re-renders the edit form at 422 with the submitted values. On success runs `UPDATE notes SET title = ?, body = ?, updated_at = unixepoch() WHERE id = ? AND user_id = ?` and redirects to `/?flash=Note+saved.` (303).
 - `deleteNote(req)` — Same auth + ownership guard. Deletes the row scoped by `user_id` and redirects to `/?flash=Note+deleted.` (303).
 - `success(req)` — Returns the "Account created" confirmation page with a link to `/login`.
-- Private: `PAGE_SIZE = 10`; `listNotes` (now takes `user_id, limit, offset`), `searchNotes` (adds `title LIKE ? OR body LIKE ?`), `countNotes`, `countSearchNotes`, `findNote`, `insertNote`, `updateNoteRow`, `deleteNoteRow` — prepared statements held at module scope. All note queries that touch a specific row include `user_id = ?` to enforce ownership at the SQL layer; the search and count queries pass `%${q}%` for the LIKE pattern.
+- Private: `PAGE_SIZE = 10`; `listNotes` (now takes `user_id, limit, offset`), `searchNotes` (adds `title LIKE ? OR body LIKE ?`), `countNotes`, `countSearchNotes`, `findNote`, `insertNote`, `updateNoteRow`, `deleteNoteRow` — prepared statements held at module scope. Both `listNotes` and `searchNotes` use `ORDER BY created_at DESC, id DESC` — the `id DESC` tiebreaker keeps pagination deterministic when multiple notes share a `created_at` second (without it, SQLite's tie order is undefined and pagination tests flake). All note queries that touch a specific row include `user_id = ?` to enforce ownership at the SQL layer; the search and count queries pass `%${q}%` for the LIKE pattern.
 
 ### `users.ts`
 
@@ -77,6 +77,10 @@
 - `endSession(id: string): void` — `DELETE FROM sessions WHERE id = ?`. Does not check the row existed.
 - Private: `SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30` (30 days); `insertSession`, `findSession`, `deleteSession` — prepared statements/queries held at module scope.
 
+### `seed.ts`
+
+Standalone script (`bun run seed.ts`), not imported by the server. Holds a `quotes` array of 50 `{ title, body }` objects, asserts the length is exactly 50 (logs and `process.exit(1)` otherwise), wipes the `notes` table with `DELETE FROM notes`, then inserts every quote against `user_id = 1`. Useful for filling the database to exercise the search and pagination UI; assumes a user with `id = 1` already exists. Exports nothing.
+
 ### `templates.ts`
 
 - `page(title, body, init?): Response` — Replaces `{{title}}` and `{{body}}` in the layout HTML and returns an HTML Response with `Content-Type: text/html; charset=utf-8`, merging any caller-supplied `init`. Does **not** replace `{{nav}}` — use `pageFor` for any page that should render nav. (Currently only the 500 error page in `index.ts` uses `page` directly.)
@@ -85,6 +89,7 @@
 - `escapeHtml(s: string): string` — Replaces `& < > " '` with their HTML entity references.
 - `renderForm(values?, errors?, options?): string` — Returns a `<form>` HTML block. `options` defaults to `{ action: "/notes", heading: "New Note", submit: "Save Note" }`; the edit handlers pass `{ action: "/notes/:id/edit", heading: "Edit Note", submit: "Save Changes" }`. Escapes prefilled values and prefixes a `<ul class="errors">` list when errors are present.
 - `notFound(): Response` — Returns the styled 404 page via `pageFor(null, ...)` with status 404.
+- `renderPager(page, pageCount, q): string` — Returns the `<nav class="pager">` block consumed by `home`. Returns `""` when `pageCount <= 1` so single-page lists render no pager. Builds prev/next URLs with `URLSearchParams` — `q` is included only when non-empty, `page` only when not 1, so page 1 links back to `/` (or `/?q=...`) rather than `/?page=1`. The current page becomes a `<span class="prev disabled">` / `<span class="next disabled">` instead of a link at the ends. All hrefs are escaped via `escapeHtml`.
 - Private: top-level `await Bun.file("./layout.html").text()` reads the layout template once at module load; `NEW_NOTE_FORM` constant holds the default `FormOptions`.
 
 ## Database schema
@@ -164,10 +169,11 @@ Local helpers: `signUp(email, password)` POSTs to `/signup`; `loginAs(email, pas
 - `describe("server routes")` — 3 tests: about page returns 200, `/ok` returns `"OK"`, public stylesheet has `text/css` content type.
 - `describe("notes")` — 4 tests: GET `/notes/new` returns the form (requires login), POST `/notes` redirects, submitted notes appear on home, user input is escaped.
 - `describe("validation and errors")` — 5 tests: empty title / empty body / preserved input / no DB write on invalid / styled 404 for unknown routes.
-- `describe("sign up")` — 5 tests: GET form, successful sign up stores an argon2id hash, hash verifies with `Bun.password.verify`, short password keeps the email but drops the password from the response, mismatched passwords, duplicate email returns a friendly error with only one row in the DB.
+- `describe("sign up")` — 6 tests: GET form, successful sign up stores an argon2id hash, hash verifies with `Bun.password.verify`, short password keeps the email but drops the password from the response, mismatched passwords, duplicate email returns a friendly error with only one row in the DB.
 - `describe("login and logout")` — 6 tests: GET form, valid login sets the cookie and writes a `sessions` row, wrong password returns the same error as unknown email (privacy property pinned), logout clears the cookie + row, logout without a session no-ops.
 - `describe("ownership")` — 8 tests: welcome message when logged out, user's notes when logged in, one user does not see another's notes, `/notes/new` and POST `/notes` redirect to `/login` when logged out, created notes are stamped with the current `user.id`, nav switches based on auth state (both directions).
 - `describe("edit and delete")` — 10 tests: edit form pre-fills, POST edit updates + redirects with `?flash=Note+saved.`, empty title returns 422 + keeps the original row, delete removes + redirects with `?flash=Note+deleted.`, home renders the flash, flash value is HTML-escaped (XSS pinned), a user cannot edit or delete another user's note (404, row unchanged), edit/delete on a missing id returns 404, edit/delete redirect to `/login` when logged out.
+- `describe("search and pagination")` — 10 tests: search filters by substring in title and in body, no-match search renders a friendly empty message that names the (escaped) query, the search query is HTML-escaped in both the input value and the empty message, search is scoped to the current user (one user's matching note doesn't appear in another's results), `/` caps the list at 10 with a "Page 1 of N" indicator, `?page=2` shows the older notes (relies on the `id DESC` tiebreaker for stable order), the pager doesn't render at all when everything fits on one page, search and pagination compose (the pager link preserves `q`), and `?page=0` / `?page=banana` both fall back to page 1.
 
 ### `routes.test.ts` — unit tests for `validateNote`
 
@@ -179,13 +185,13 @@ Local helpers: `signUp(email, password)` POSTs to `/signup`; `loginAs(email, pas
 
 ### `templates.test.ts` — unit tests for templating
 
-7 tests: `escapeHtml` covers all five HTML special chars and leaves safe text alone; `renderForm` defaults to empty fields with no error list, round-trips user input safely (including escaping `&amp;` → `&amp;amp;`), and shows the error list when given errors; `renderNav` renders the logged-in nav for a `User` and the logged-out nav for `null`.
+12 tests: `escapeHtml` covers all five HTML special chars and leaves safe text alone; `renderForm` defaults to empty fields with no error list, round-trips user input safely (including escaping `&amp;` → `&amp;amp;`), and shows the error list when given errors; `renderNav` renders the logged-in nav for a `User` and the logged-out nav for `null`; `renderPager` returns `""` for a single page, links forward / back at the appropriate ends, disables prev on page 1 and next on the last page, and carries the `q` query param through into the prev/next URLs.
 
 ### `wordcount.test.ts` — leftover from Chapter 4
 
 6 tests for `countWords`. Not wired into the server.
 
-**Test totals:** 66 tests across 5 files. Last run requires port 3000 to be free (`server.test.ts` boots `Bun.serve` on a fixed port via `import "./index.ts"`); a stray `bun --watch` process will cause an `EADDRINUSE` error in that file.
+**Test totals:** 81 tests across 5 files (server: 52, routes: 6, users: 5, templates: 12, wordcount: 6). Last run requires port 3000 to be free (`server.test.ts` boots `Bun.serve` on a fixed port via `import "./index.ts"`); a stray `bun --watch` process will cause an `EADDRINUSE` error in that file.
 
 ## Known type errors (TS only — runtime is fine)
 

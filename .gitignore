@@ -42,4 +42,6 @@ notes.db-wal
 notes.db-shm
 notes.test.db
 notes.test.db-wal
-notes.test.db-shm
+notes.test.db-shm 
+
+.env
