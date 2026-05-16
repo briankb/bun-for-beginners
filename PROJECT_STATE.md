@@ -2,6 +2,7 @@
 
 ```
 .
+├── .env.example
 ├── about.html
 ├── db.ts
 ├── form.html
@@ -27,7 +28,7 @@
 └── wordcount.test.ts
 ```
 
-*Not shown: `node_modules/`, `bun.lock`, `notes.db`, `notes.test.db`, and SQLite `-wal`/`-shm` sidecars (all gitignored).*
+*Not shown: `node_modules/`, `bun.lock`, `.env`, `notes.db`, `notes.test.db`, and SQLite `-wal`/`-shm` sidecars (all gitignored). `.env.example` is checked in as a template (lists `PORT` and `DB_PATH`); copy it to `.env` for local overrides.*
 
 *Stale files still on disk: `wordcount.ts` / `wordcount.test.ts` (from Chapters 3–4, not used by the server); `form.html` and `home.html` (early-chapter scaffolding, no longer referenced — `home.html` was replaced by inline HTML in `routes.ts`, and the new-note form is now rendered by `renderForm` in `templates.ts`).*
 
@@ -40,7 +41,7 @@
 
 ### `index.ts`
 
-- `server: Server` — `Bun.serve` instance on port 3000 wiring `/`, `/about`, `/notes/new`, `POST /notes`, `GET|POST /notes/:id/edit`, `POST /notes/:id/delete`, `/signup` (GET + POST), `/login` (GET + POST), `POST /logout`, `/success`, `/ok`, a `/*` static-file fallback into `./public`, a `fetch` 404 fallback, and an `error` handler that renders a 500 page via `page(...)`.
+- `server: Server` — `Bun.serve` instance bound to `Number(process.env.PORT) || 3000` (defaults to 3000 when `PORT` is unset or non-numeric), wiring `/`, `/about`, `/notes/new`, `POST /notes`, `GET|POST /notes/:id/edit`, `POST /notes/:id/delete`, `/signup` (GET + POST), `/login` (GET + POST), `POST /logout`, `/success`, `/ok`, a `/*` static-file fallback into `./public`, a `fetch` 404 fallback, and an `error` handler that renders a 500 page via `page(...)`.
 - Private: `import.meta.main` guard that logs the server URL when the module is the entrypoint.
 
 ### `routes.ts`
@@ -64,7 +65,7 @@
 - `signup(req)` — Returns the page wrapping the sign-up form with empty values and no errors. Nav reflects `currentUser(req)`.
 - `createUser(req): Promise<Response>` — Parses the form body, calls `validateSignup`, re-renders the form with errors at status 422 if invalid; otherwise hashes the password with `Bun.password.hash` (argon2id default), inserts the user, catches `UNIQUE` constraint errors to render an "Email already registered." 422, and returns a 303 redirect to `/success` on success. Non-UNIQUE errors are re-thrown to the server's `error` handler.
 - `login(req)` — Returns the page wrapping the login form with empty values and no errors.
-- `createLogin(req): Promise<Response>` — Parses the form body, returns a single "Email or password is incorrect." 422 for empty fields, unknown email, or wrong password (no leak about which case it was). On success, calls `createSession(user.id)` and sets a `session_id` cookie via `req.cookies.set(...)` with `httpOnly`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session lifetime, then returns a 303 redirect to `/`.
+- `createLogin(req): Promise<Response>` — Parses the form body, returns a single "Email or password is incorrect." 422 for empty fields, unknown email, or wrong password (no leak about which case it was). On success, calls `createSession(user.id)` and sets a `session_id` cookie via `req.cookies.set(...)` with `httpOnly`, `sameSite: "lax"`, `secure: isProduction` (the module-scope `isProduction = process.env.NODE_ENV === "production"`, so the cookie is HTTPS-only in prod and works over plain HTTP in dev/tests), `path: "/"`, and `maxAge` matching the session lifetime, then returns a 303 redirect to `/`.
 - `currentUser(req): User | null` — Reads `session_id` from `req.cookies`, looks up the session via `findSessionById` (which already filters on `expires_at > unixepoch()`), then looks up the user. Returns `null` if cookie/session/user is missing or expired. Now used by every handler in `routes.ts` and by `signup`/`login`/`about` to drive nav state.
 - `logout(req): Response` — Reads `session_id` from `req.cookies`, calls `endSession` and `req.cookies.delete("session_id")` if present, and returns a 303 redirect to `/`. No-ops gracefully when no cookie is present.
 - Private: `insertUser`, `findUserByEmail`, `findUserById` — prepared statements held at module scope; `renderSignupForm(values?, errors?)` — renders the sign-up `<form>` with escaped email round-trip (password fields never round-trip) and an optional `<ul class="errors">` list; `renderLoginForm(values?, errors?)` — same shape as `renderSignupForm` but with only an email field plus password (no confirm).
@@ -154,7 +155,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 **Ownership invariant:** every note SQL touches `user_id`. Reading another user's note returns 404 (not 403) so the existence of the row is not leaked.
 
-The session cookie is set with `httpOnly: true`, `sameSite: "lax"`, `path: "/"`, and `maxAge` matching the session's `expires_at`. `req.cookies` is a `Bun.CookieMap`; any `set`/`delete` against it is applied to the response automatically by `Bun.serve`. (Note: `bun-types` does not currently type `Request.cookies` or `Request.params`, even though they work at runtime — `tsc --noEmit` reports "Property 'cookies' does not exist on type 'Request'" on four call sites in `users.ts` and "Property 'params' does not exist on type 'Request'" on the three `req.params.id` sites in `routes.ts`. Behavior is unaffected.)
+The session cookie is set with `httpOnly: true`, `sameSite: "lax"`, `secure` when `NODE_ENV === "production"` (otherwise `false` so dev/test traffic over plain HTTP still gets the cookie), `path: "/"`, and `maxAge` matching the session's `expires_at`. `req.cookies` is a `Bun.CookieMap`; any `set`/`delete` against it is applied to the response automatically by `Bun.serve`. (Note: `bun-types` does not currently type `Request.cookies` or `Request.params`, even though they work at runtime — `tsc --noEmit` reports "Property 'cookies' does not exist on type 'Request'" on four call sites in `users.ts` and "Property 'params' does not exist on type 'Request'" on the three `req.params.id` sites in `routes.ts`. Behavior is unaffected.)
 
 ## Tests
 
@@ -192,6 +193,21 @@ Local helpers: `signUp(email, password)` POSTs to `/signup`; `loginAs(email, pas
 6 tests for `countWords`. Not wired into the server.
 
 **Test totals:** 81 tests across 5 files (server: 52, routes: 6, users: 5, templates: 12, wordcount: 6). Last run requires port 3000 to be free (`server.test.ts` boots `Bun.serve` on a fixed port via `import "./index.ts"`); a stray `bun --watch` process will cause an `EADDRINUSE` error in that file.
+
+## Scripts and environment
+
+`package.json` defines four scripts:
+
+- `bun run dev` — `bun --watch index.ts`. Auto-reloads on file changes. Holds port 3000, so kill it before running tests.
+- `bun run start` — `bun index.ts`. Plain run with no watcher; the production entrypoint.
+- `bun test` (aliased as `bun run test`) — sets `DB_PATH=notes.test.db` inline so the test suite never touches `notes.db`. Running `bun test` directly without that prefix will write to the dev database.
+- `bun run typecheck` — `tsc --noEmit`. Surfaces the known `bun-types` gaps below; does not run as part of `bun test`.
+
+Environment variables (all optional, defaults baked in):
+
+- `PORT` — server port, read by `index.ts`. Defaults to `3000` when unset or non-numeric.
+- `DB_PATH` — SQLite file path, read by `db.ts`. Defaults to `notes.db`. The `test` script overrides it to `notes.test.db`.
+- `NODE_ENV` — read by `users.ts`. When equal to `"production"`, the session cookie is set with `secure: true` (HTTPS-only). Any other value (including unset) keeps `secure: false` so dev/test cookies work over plain HTTP.
 
 ## Known type errors (TS only — runtime is fine)
 
